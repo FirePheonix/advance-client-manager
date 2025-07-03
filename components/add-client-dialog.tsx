@@ -184,7 +184,7 @@ export function AddClientDialog({ open, onOpenChange, onAddClient }: AddClientDi
           {formData.paymentType === "monthly" ? (
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="monthlyRate">Monthly Rate ($)</Label>
+                <Label htmlFor="monthlyRate">Monthly Rate (₹)</Label>
                 <Input
                   id="monthlyRate"
                   type="number"
@@ -206,7 +206,7 @@ export function AddClientDialog({ open, onOpenChange, onAddClient }: AddClientDi
             </div>
           ) : (
             <div className="space-y-4">
-              <Label>Per Post Rates ($)</Label>
+              <Label>Per Post Rates (₹)</Label>
               <div className="grid grid-cols-2 gap-4">
                 {postTypes.map((postType) => (
                   <div key={postType} className="flex items-center space-x-2">

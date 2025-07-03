@@ -69,3 +69,14 @@ export type TeamMember = {
   notes?: string;
   created_at: string;
 }
+
+export interface OtherExpense {
+  id: string
+  title: string
+  amount: number  // Can be negative (income) or positive (expense)
+  expense_date: string
+  category?: string
+  description?: string
+  created_at: string
+  updated_at: string
+}

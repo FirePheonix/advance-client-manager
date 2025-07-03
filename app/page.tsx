@@ -2,6 +2,7 @@ import { Suspense } from "react"
 import { DashboardStats } from "@/components/dashboard-stats"
 import { RecentActivity } from "@/components/recent-activity"
 import { UpcomingPayments } from "@/components/upcoming-payments"
+import { UpcomingTeamPayments } from "@/components/upcoming-team-payments" // Add this import
 
 export default function HomePage() {
   return (
@@ -20,9 +21,15 @@ export default function HomePage() {
           <RecentActivity />
         </Suspense>
 
-        <Suspense fallback={<div className="text-white">Loading payments...</div>}>
-          <UpcomingPayments />
-        </Suspense>
+        <div className="space-y-6"> {/* Add this container div */}
+          <Suspense fallback={<div className="text-white">Loading payments...</div>}>
+            <UpcomingPayments />
+          </Suspense>
+          
+          <Suspense fallback={<div className="text-white">Loading team payments...</div>}>
+            <UpcomingTeamPayments />
+          </Suspense>
+        </div>
       </div>
     </div>
   )

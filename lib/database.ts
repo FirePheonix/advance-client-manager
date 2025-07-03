@@ -1,4 +1,5 @@
 import { supabase, type Client, type Payment, type Task, type TeamMember } from "./supabase"
+import { getNextPaymentDate } from './date-utils'
 
 // Client operations
 export async function getClients() {
@@ -48,6 +49,44 @@ export async function renameClient(id: string, name: string) {
   return data as Client
 }
 
+// Archive functions
+export async function archiveClient(clientId: string) {
+  const { data, error } = await supabase
+    .from("clients")
+    .update({ 
+      status: 'archived',
+      next_payment: '2125-01-01', // Set far future date
+      updated_at: new Date().toISOString()
+    })
+    .eq("id", clientId)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data as Client
+}
+
+export async function unarchiveClient(clientId: string) {
+  // Calculate next reasonable payment date (next month from today)
+  const today = new Date()
+  const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, today.getDate())
+  const nextPaymentDate = nextMonth.toISOString().split('T')[0]
+
+  const { data, error } = await supabase
+    .from("clients")
+    .update({ 
+      status: 'active',
+      next_payment: nextPaymentDate,
+      updated_at: new Date().toISOString()
+    })
+    .eq("id", clientId)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data as Client
+}
+
 // Payment operations
 export async function getPayments() {
   const { data, error } = await supabase
@@ -81,6 +120,22 @@ export async function createPayment(payment: Omit<Payment, "id" | "created_at">)
 
   if (error) throw error
   return data as Payment
+}
+
+export async function checkPaymentExists(clientId: string, dueDate: string) {
+  const { data, error } = await supabase
+    .from('payments')
+    .select('*')
+    .eq('client_id', clientId)
+    .gte('payment_date', new Date(dueDate).toISOString().split('T')[0])
+    .lte('payment_date', new Date(dueDate).toISOString().split('T')[0])
+    .eq('status', 'completed')
+    .single()
+
+  if (error && error.code !== 'PGRST116') { // Ignore "No rows found" error
+    throw error
+  }
+  return !!data
 }
 
 // Task operations
@@ -143,6 +198,95 @@ export async function createTeamMember(member: Omit<TeamMember, "id" | "created_
     throw new Error(error.message || "Failed to create team member")
   }
   return data as TeamMember
+}
+
+export async function updateTeamMember(id: string, updates: Partial<TeamMember>) {
+  const { data, error } = await supabase
+    .from("team_members")
+    .update(updates)
+    .eq("id", id)
+    .select()
+    .single()
+
+  if (error) {
+    throw new Error(error.message || "Failed to update team member")
+  }
+  return data as TeamMember
+}
+
+export async function deleteTeamMember(id: string) {
+  const { error } = await supabase
+    .from("team_members")
+    .delete()
+    .eq("id", id)
+
+  if (error) {
+    throw new Error(error.message || "Failed to delete team member")
+  }
+  return true
+}
+
+// Other expenses operations
+export async function getOtherExpenses() {
+  const { data, error } = await supabase
+    .from("other_expenses")
+    .select("*")
+    .order("date", { ascending: false })
+
+  if (error) throw error
+  return data
+}
+
+export async function createOtherExpense(expense: {
+  title: string
+  amount: number
+  date: string
+  description?: string | null
+}) {
+  const { data, error } = await supabase
+    .from("other_expenses")
+    .insert({
+      title: expense.title.trim(),
+      amount: expense.amount,
+      date: expense.date,
+      description: expense.description || null
+    })
+    .select()
+    .single()
+
+  if (error) {
+    console.error("Supabase error:", error)
+    throw new Error("Failed to create expense")
+  }
+  
+  return data
+}
+
+export async function updateOtherExpense(id: string, updates: {
+  title?: string
+  amount?: number
+  date?: string
+  description?: string | null
+}) {
+  const { data, error } = await supabase
+    .from("other_expenses")
+    .update(updates)
+    .eq("id", id)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
+}
+
+export async function deleteOtherExpense(id: string) {
+  const { error } = await supabase
+    .from("other_expenses")
+    .delete()
+    .eq("id", id)
+
+  if (error) throw error
+  return true
 }
 
 // Analytics functions
@@ -273,114 +417,229 @@ export async function getUpcomingPayments() {
   )
 }
 
-// Add these new functions to your existing database.ts file
+// Payment date update functions
+export async function updateClientNextPayment(clientId: string, currentPaymentDate: string) {
+  const nextPaymentDate = getNextPaymentDate(currentPaymentDate)
+  
+  const { data, error } = await supabase
+    .from("clients")
+    .update({ 
+      next_payment: nextPaymentDate,
+      updated_at: new Date().toISOString()
+    })
+    .eq("id", clientId)
+    .select()
+    .single()
 
-/**
- * Get payments grouped by time period for chart visualization
- * @param range - Time range to group by ('day', 'week', 'month')
- * @param limit - Number of periods to return
- */
+  if (error) throw error
+  return data
+}
+
+export async function updateTeamMemberNextPayment(memberId: string, currentPaymentDate: string) {
+  const nextPaymentDate = getNextPaymentDate(currentPaymentDate)
+  
+  const { data, error } = await supabase
+    .from("team_members")
+    .update({ 
+      payment_date: nextPaymentDate
+    })
+    .eq("id", memberId)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
+}
+
+// Dashboard stats functions
+export async function getPaymentsByPeriod(startDate: string, endDate: string) {
+  const { data, error } = await supabase
+    .from("payments")
+    .select("amount, payment_date, status")
+    .eq("status", "completed")
+    .gte("payment_date", startDate)
+    .lte("payment_date", endDate)
+
+  if (error) throw error
+  return data || []
+}
+
+export async function getOtherExpensesByPeriod(startDate: string, endDate: string) {
+  const { data, error } = await supabase
+    .from("other_expenses")
+    .select("amount, date, title")
+    .gte("date", startDate)
+    .lte("date", endDate)
+    // Exclude salary payments to avoid double counting
+    .not("title", "like", "Salary -%")
+
+  if (error) throw error
+  return data || []
+}
+
+export async function getTeamSalariesByPeriod(startDate: string, endDate: string) {
+  const { data, error } = await supabase
+    .from("other_expenses")
+    .select("amount, date, title")
+    .gte("date", startDate)
+    .lte("date", endDate)
+    // Only include salary payments
+    .like("title", "Salary -%")
+
+  if (error) throw error
+  return data || []
+}
+
+export async function getUpcomingPaymentsPending() {
+  const today = new Date().toISOString().split("T")[0]
+  const futureDate = new Date()
+  futureDate.setDate(futureDate.getDate() + 30)
+  const future = futureDate.toISOString().split("T")[0]
+
+  // Get clients with upcoming payments that haven't been paid yet (excluding archived)
+  const { data: clients, error: clientsError } = await supabase
+    .from("clients")
+    .select("id, name, email, next_payment, monthly_rate, weekly_rate, payment_type")
+    .neq("status", "archived") // Exclude archived clients
+    .eq("status", "active")
+    .not("next_payment", "is", null)
+    .gte("next_payment", today)
+    .lte("next_payment", future)
+
+  if (clientsError) throw clientsError
+
+  // Check which clients haven't been paid yet
+  const pendingPayments = []
+  
+  for (const client of clients || []) {
+    const paymentExists = await checkPaymentExists(client.id, client.next_payment!)
+    
+    if (!paymentExists) {
+      const amount = client.payment_type === "monthly" 
+        ? client.monthly_rate || 0
+        : client.payment_type === "weekly" 
+          ? client.weekly_rate || 0
+          : 0
+
+      pendingPayments.push({
+        client_id: client.id,
+        client_name: client.name,
+        amount: amount,
+        due_date: client.next_payment
+      })
+    }
+  }
+
+  return pendingPayments
+}
+
+export async function getUpcomingTeamPaymentsPending() {
+  const today = new Date()
+  
+  // Get all active team members
+  const { data: teamMembers, error } = await supabase
+    .from("team_members")
+    .select("id, name, salary, payment_date")
+    .eq("status", "active")
+
+  if (error) throw error
+
+  const pendingPayments = []
+
+  for (const member of teamMembers || []) {
+    // Parse payment_date and calculate next payment
+    const paymentDate = new Date(member.payment_date)
+    const paymentDay = paymentDate.getDate()
+    
+    // Create a date for this month's payment
+    const thisMonthPayment = new Date(today.getFullYear(), today.getMonth(), paymentDay)
+    
+    // If today is past this month's payment date, look at next month
+    const nextPaymentDate = today > thisMonthPayment 
+      ? new Date(today.getFullYear(), today.getMonth() + 1, paymentDay)
+      : thisMonthPayment
+
+    // Check if payment is due within next 7 days
+    const daysUntilDue = Math.ceil(
+      (nextPaymentDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+    )
+
+    if (daysUntilDue <= 7 && daysUntilDue >= 0) {
+      // Check if this payment has already been made
+      const monthStart = new Date(nextPaymentDate.getFullYear(), nextPaymentDate.getMonth(), 1)
+      const monthEnd = new Date(nextPaymentDate.getFullYear(), nextPaymentDate.getMonth() + 1, 0)
+      
+      const { data: expenses } = await supabase
+        .from("other_expenses")
+        .select("*")
+        .like("title", `Salary - ${member.name}`)
+        .gte("date", monthStart.toISOString().split("T")[0])
+        .lte("date", monthEnd.toISOString().split("T")[0])
+
+      // If no salary payment found for this month, add to pending
+      if (!expenses || expenses.length === 0) {
+        pendingPayments.push({
+          member_id: member.id,
+          member_name: member.name,
+          amount: member.salary,
+          due_date: nextPaymentDate.toISOString().split("T")[0]
+        })
+      }
+    }
+  }
+
+  return pendingPayments
+}
+
+// Advanced analytics functions
 export async function getPaymentsGroupedByTime(range: 'day' | 'week' | 'month' = 'month', limit = 12) {
   // Determine the date truncation based on range
-  const dateTrunc = range === 'day' ? 'day' : range === 'week' ? 'week' : 'month';
+  const dateTrunc = range === 'day' ? 'day' : range === 'week' ? 'week' : 'month'
   
   const { data, error } = await supabase.rpc('get_payments_by_time_period', {
     date_trunc: dateTrunc,
     limit_count: limit
-  });
+  })
 
-  if (error) throw error;
+  if (error) throw error
   return data as Array<{
-    period: string;
-    total_amount: number;
-    completed_amount: number;
-    pending_amount: number;
-    overdue_amount: number;
-  }>;
+    period: string
+    total_amount: number
+    completed_amount: number
+    pending_amount: number
+    overdue_amount: number
+  }>
 }
 
-/**
- * Get payment statistics summary
- */
 export async function getPaymentStats() {
-  const { data, error } = await supabase.rpc('get_payment_stats');
+  const { data, error } = await supabase.rpc('get_payment_stats')
 
-  if (error) throw error;
+  if (error) throw error
   return data as {
-    total_revenue: number;
-    completed_revenue: number;
-    pending_revenue: number;
-    overdue_revenue: number;
-    avg_payment: number;
-    payment_count: number;
-  };
-}
-
-export async function updateTeamMember(id: string, updates: Partial<TeamMember>) {
-  const { data, error } = await supabase
-    .from("team_members")
-    .update(updates)
-    .eq("id", id)
-    .select()
-    .single()
-
-  if (error) {
-    throw new Error(error.message || "Failed to update team member")
+    total_revenue: number
+    completed_revenue: number
+    pending_revenue: number
+    overdue_revenue: number
+    avg_payment: number
+    payment_count: number
   }
-  return data as TeamMember
 }
 
-export async function deleteTeamMember(id: string) {
-  const { error } = await supabase
-    .from("team_members")
-    .delete()
-    .eq("id", id)
-
-  if (error) {
-    throw new Error(error.message || "Failed to delete team member")
-  }
-  return true
-}
-
-// Add to database.ts
-export async function checkPaymentExists(clientId: string, dueDate: string) {
-  const { data, error } = await supabase
-    .from('payments')
-    .select('*')
-    .eq('client_id', clientId)
-    .gte('payment_date', new Date(dueDate).toISOString().split('T')[0])
-    .lte('payment_date', new Date(dueDate).toISOString().split('T')[0])
-    .eq('status', 'completed')
-    .single();
-
-  if (error && error.code !== 'PGRST116') { // Ignore "No rows found" error
-    throw error;
-  }
-  return !!data;
-}
-
-/**
- * Get revenue trends comparing current vs previous period
- * @param period - Time period to compare ('week', 'month', 'quarter', 'year')
- */
 export async function getRevenueTrends(period: 'week' | 'month' | 'quarter' | 'year' = 'month') {
   const { data, error } = await supabase.rpc('get_revenue_trends', {
     period_type: period
-  });
+  })
 
-  if (error) throw error;
+  if (error) throw error
   return data as {
-    current_period: string;
-    current_amount: number;
-    previous_period: string;
-    previous_amount: number;
-    percentage_change: number;
-  }[];
+    current_period: string
+    current_amount: number
+    previous_period: string
+    previous_amount: number
+    percentage_change: number
+  }[]
 }
 
-/**
- * Get client payment distribution
- */
 export async function getClientPaymentDistribution(limit = 10) {
   const { data, error } = await supabase
     .from('payments')
@@ -393,23 +652,23 @@ export async function getClientPaymentDistribution(limit = 10) {
       )
     `)
     .order('amount', { ascending: false })
-    .limit(limit);
+    .limit(limit)
 
-  if (error) throw error;
+  if (error) throw error
   
   // Process the data to group by client
   const clientMap = new Map<string, {
-    client_id: string;
-    client_name: string;
-    total_payments: number;
-    completed_payments: number;
-    pending_payments: number;
-    overdue_payments: number;
-  }>();
+    client_id: string
+    client_name: string
+    total_payments: number
+    completed_payments: number
+    pending_payments: number
+    overdue_payments: number
+  }>()
 
   data.forEach(payment => {
-    const clientId = payment.clients?.id || 'unknown';
-    const clientName = payment.clients?.name || 'Unknown';
+    const clientId = payment.clients?.id || 'unknown'
+    const clientName = payment.clients?.name || 'Unknown'
     
     if (!clientMap.has(clientId)) {
       clientMap.set(clientId, {
@@ -419,20 +678,20 @@ export async function getClientPaymentDistribution(limit = 10) {
         completed_payments: 0,
         pending_payments: 0,
         overdue_payments: 0
-      });
+      })
     }
 
-    const clientData = clientMap.get(clientId)!;
-    clientData.total_payments += Number(payment.amount);
+    const clientData = clientMap.get(clientId)!
+    clientData.total_payments += Number(payment.amount)
     
     if (payment.status === 'completed') {
-      clientData.completed_payments += Number(payment.amount);
+      clientData.completed_payments += Number(payment.amount)
     } else if (payment.status === 'pending') {
-      clientData.pending_payments += Number(payment.amount);
+      clientData.pending_payments += Number(payment.amount)
     } else if (payment.status === 'overdue') {
-      clientData.overdue_payments += Number(payment.amount);
+      clientData.overdue_payments += Number(payment.amount)
     }
-  });
+  })
 
-  return Array.from(clientMap.values());
+  return Array.from(clientMap.values())
 }

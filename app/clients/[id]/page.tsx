@@ -21,7 +21,7 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select"
-import { ArrowLeft, Mail, Phone, Building, DollarSign, Calendar, Users, Edit, Trash2 } from "lucide-react"
+import { ArrowLeft, Mail, Phone, Building, DollarSign, Calendar, Users, Edit, Trash2, Archive, ArchiveRestore } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { KanbanBoard } from "@/components/kanban-board"
 import { PaymentTimelineGraph } from "@/components/payment-timeline-graph"
@@ -34,6 +34,8 @@ import {
   createPayment,
   updateClient,
   deleteClient,
+  archiveClient,
+  unarchiveClient,
   type Client,
   type Task,
   type Payment,
@@ -67,6 +69,7 @@ export default function ClientDetailPage({ params }: ClientDetailPageProps) {
   const [error, setError] = useState<string | null>(null)
   const [showEditDialog, setShowEditDialog] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [showArchiveDialog, setShowArchiveDialog] = useState(false)
   const [editFormData, setEditFormData] = useState<Partial<Client>>({})
   const [clientId, setClientId] = useState<string | null>(null)
 
@@ -246,6 +249,33 @@ export default function ClientDetailPage({ params }: ClientDetailPageProps) {
     }
   }
 
+  const handleArchiveClient = async () => {
+    if (!client) return
+
+    try {
+      await archiveClient(client.id)
+      toast.success("Client archived successfully")
+      router.push("/clients") // Redirect to clients list
+    } catch (error) {
+      console.error("Error archiving client:", error)
+      toast.error("Failed to archive client")
+    }
+  }
+
+  const handleUnarchiveClient = async () => {
+    if (!client) return
+
+    try {
+      await unarchiveClient(client.id)
+      // Reload client data to show updated status
+      await loadClientData()
+      toast.success("Client unarchived successfully")
+    } catch (error) {
+      console.error("Error unarchiving client:", error)
+      toast.error("Failed to unarchive client")
+    }
+  }
+
   const handleServiceToggle = (service: string) => {
     const currentServices = editFormData.services || []
     const updatedServices = currentServices.includes(service)
@@ -328,11 +358,39 @@ export default function ClientDetailPage({ params }: ClientDetailPageProps) {
             Back
           </Button>
           <div>
+            {/* Archive Status Banner */}
+            {client.status === 'archived' && (
+              <div className="mb-2 p-2 bg-amber-900/20 border border-amber-700 rounded-lg">
+                <div className="flex items-center space-x-2">
+                  <Archive className="h-4 w-4 text-amber-400" />
+                  <span className="text-amber-400 text-sm font-medium">
+                    This client is archived
+                  </span>
+                </div>
+                <p className="text-amber-300 text-xs mt-1">
+                  Archived clients don't appear in upcoming payments and are hidden from active lists. 
+                  All data is preserved and can be restored by unarchiving.
+                </p>
+              </div>
+            )}
+            
             <div className="flex items-center space-x-3">
               <h1 className="text-3xl font-bold text-white">{client.name}</h1>
               <Badge
-                variant={client.status === "active" ? "default" : "secondary"}
-                className={client.status === "active" ? "bg-green-600" : "bg-yellow-600"}
+                variant={
+                  client.status === "archived" 
+                    ? "secondary" 
+                    : client.status === "active" 
+                      ? "default" 
+                      : "secondary"
+                }
+                className={
+                  client.status === "archived"
+                    ? "bg-gray-600"
+                    : client.status === "active" 
+                      ? "bg-green-600" 
+                      : "bg-yellow-600"
+                }
               >
                 {client.status}
               </Badge>
@@ -345,6 +403,30 @@ export default function ClientDetailPage({ params }: ClientDetailPageProps) {
                 <Edit className="mr-2 h-4 w-4" />
                 Edit
               </Button>
+              
+              {/* Archive/Unarchive Button */}
+              {client.status === 'archived' ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleUnarchiveClient}
+                  className="border-green-600 text-green-400 hover:bg-green-900/20 hover:border-green-500"
+                >
+                  <ArchiveRestore className="mr-2 h-4 w-4" />
+                  Unarchive
+                </Button>
+              ) : (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowArchiveDialog(true)}
+                  className="border-amber-600 text-amber-400 hover:bg-amber-900/20 hover:border-amber-500"
+                >
+                  <Archive className="mr-2 h-4 w-4" />
+                  Archive
+                </Button>
+              )}
+              
               <Button
                 variant="outline"
                 size="sm"
@@ -741,6 +823,44 @@ export default function ClientDetailPage({ params }: ClientDetailPageProps) {
               className="bg-red-600 hover:bg-red-700 text-white"
             >
               Delete Client
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Archive Client Confirmation Dialog */}
+      <Dialog open={showArchiveDialog} onOpenChange={setShowArchiveDialog}>
+        <DialogContent className="bg-gray-800 border-gray-700">
+          <DialogHeader>
+            <DialogTitle className="text-white">Archive Client</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-gray-300 mb-4">
+              Are you sure you want to archive <span className="font-semibold text-white">{client?.name}</span>?
+            </p>
+            <div className="bg-amber-900/20 border border-amber-700 rounded-lg p-3">
+              <h4 className="text-amber-400 font-medium mb-2">What happens when you archive:</h4>
+              <ul className="text-amber-300 text-sm space-y-1">
+                <li>• Won't appear in upcoming payments</li>
+                <li>• Hidden from active client lists</li>
+                <li>• All data (tasks, payments) is preserved</li>
+                <li>• Can be unarchived anytime</li>
+              </ul>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowArchiveDialog(false)}
+              className="border-gray-600 text-gray-300"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleArchiveClient}
+              className="bg-amber-600 hover:bg-amber-700 text-white"
+            >
+              Archive Client
             </Button>
           </DialogFooter>
         </DialogContent>

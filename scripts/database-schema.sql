@@ -61,6 +61,16 @@ CREATE TABLE IF NOT EXISTS team_members (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Create other_expenses table
+CREATE TABLE IF NOT EXISTS other_expenses (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  title TEXT NOT NULL,
+  amount DECIMAL(10,2) NOT NULL,
+  date DATE NOT NULL,
+  description TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_clients_status ON clients(status);
 CREATE INDEX IF NOT EXISTS idx_clients_payment_type ON clients(payment_type);
@@ -70,18 +80,21 @@ CREATE INDEX IF NOT EXISTS idx_payments_status ON payments(status);
 CREATE INDEX IF NOT EXISTS idx_tasks_client_id ON tasks(client_id);
 CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status);
 CREATE INDEX IF NOT EXISTS idx_team_members_status ON team_members(status);
+CREATE INDEX IF NOT EXISTS idx_other_expenses_date ON other_expenses(date);
 
 -- Enable Row Level Security
 ALTER TABLE clients ENABLE ROW LEVEL SECURITY;
 ALTER TABLE payments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE tasks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE team_members ENABLE ROW LEVEL SECURITY;
+ALTER TABLE other_expenses ENABLE ROW LEVEL SECURITY;
 
 -- Create policies (for now, allow all operations - you can restrict later)
 CREATE POLICY "Allow all operations on clients" ON clients FOR ALL USING (true);
 CREATE POLICY "Allow all operations on payments" ON payments FOR ALL USING (true);
 CREATE POLICY "Allow all operations on tasks" ON tasks FOR ALL USING (true);
 CREATE POLICY "Allow all operations on team_members" ON team_members FOR ALL USING (true);
+CREATE POLICY "Allow all operations on other_expenses" ON other_expenses FOR ALL USING (true);
 
 -- Create updated_at trigger function
 CREATE OR REPLACE FUNCTION update_updated_at_column()

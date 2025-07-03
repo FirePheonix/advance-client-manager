@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Calendar, Mail, Check, X, Send, Download } from "lucide-react"
-import { getClients, createPayment, checkPaymentExists } from "@/lib/database"
+import { getClients, createPayment, checkPaymentExists, updateClientNextPayment } from "@/lib/database"
 import type { Client } from "@/lib/supabase"
 import { toast } from "sonner"
 
@@ -233,18 +233,21 @@ Note: Please manually attach the downloaded PDF file to this email.`
       await createPayment({
         client_id: clientId,
         amount: amount,
-        payment_date: dueDate, // Use the due date as payment date
+        payment_date: dueDate,
         status: "completed",
         type: "payment",
         description: "Monthly payment received",
       })
+
+      // Update client's next payment date to next month
+      await updateClientNextPayment(clientId, dueDate)
 
       // Update local state to reflect payment
       setPayments(prev => prev.map(p => 
         p.id === paymentId ? { ...p, paymentDone: true, status: "paid" } : p
       ))
 
-      toast.success("Payment marked as completed")
+      toast.success("Payment marked as completed and next payment date updated")
     } catch (error) {
       console.error("Error marking payment as paid:", error)
       toast.error("Failed to mark payment as paid")

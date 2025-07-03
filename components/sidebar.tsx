@@ -4,7 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState, useEffect } from "react"
 import { cn } from "@/lib/utils"
-import { Home, Users, Zap, Calendar, ChevronRight, Plus } from "lucide-react"
+import { Home, Users, Zap, Calendar, ChevronRight, Plus, Archive } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { AddClientDialog } from "@/components/add-client-dialog"
 import { getClients, createClient } from "@/lib/database"
@@ -12,25 +12,45 @@ import { getClients, createClient } from "@/lib/database"
 const navigation = [
   { name: "Dashboard", href: "/", icon: Home },
   { name: "Teams", href: "/teams", icon: Users },
+  { name: "Expenses" , href: "/otherExpenses", icon: Zap },
   { name: "Timeline", href: "/timeline", icon: Calendar },
   { name: "Automations", href: "/automations", icon: Zap },
 ]
 
+interface Client {
+  id: string
+  name: string
+  status: string
+  [key: string]: any
+}
+
 export function Sidebar() {
   const pathname = usePathname()
   const [showClientsDropdown, setShowClientsDropdown] = useState(false)
+  const [showArchivedDropdown, setShowArchivedDropdown] = useState(false)
   const [showAddClientDialog, setShowAddClientDialog] = useState(false)
-  const [clients, setClients] = useState<any[]>([])
+  const [allClients, setAllClients] = useState<Client[]>([])
   const [loading, setLoading] = useState(true)
+
+  // Separate active and archived clients
+  const activeClients = allClients.filter(client => client.status !== 'archived')
+  const archivedClients = allClients.filter(client => client.status === 'archived')
 
   useEffect(() => {
     loadClients()
   }, [])
 
+  // Auto-expand clients dropdown if we're on a client page
+  useEffect(() => {
+    if (pathname.startsWith("/clients")) {
+      setShowClientsDropdown(true)
+    }
+  }, [pathname])
+
   async function loadClients() {
     try {
       const data = await getClients()
-      setClients(data)
+      setAllClients(data)
     } catch (error) {
       console.error("Error loading clients:", error)
     } finally {
@@ -41,12 +61,14 @@ export function Sidebar() {
   const handleAddClient = async (clientData: any) => {
     try {
       const newClient = await createClient(clientData)
-      setClients([newClient, ...clients])
+      setAllClients([newClient, ...allClients])
       setShowAddClientDialog(false)
     } catch (error) {
       console.error("Error adding client:", error)
     }
   }
+
+  const isClientPageActive = pathname.startsWith("/clients")
 
   return (
     <>
@@ -81,7 +103,7 @@ export function Sidebar() {
               <div
                 className={cn(
                   "flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md transition-colors cursor-pointer",
-                  pathname.startsWith("/clients")
+                  isClientPageActive
                     ? "bg-gray-900 text-white"
                     : "text-gray-300 hover:bg-gray-900 hover:text-white",
                 )}
@@ -96,14 +118,27 @@ export function Sidebar() {
                 />
               </div>
 
-              {/* Smooth Dropdown */}
+              {/* Main Clients Dropdown */}
               <div
                 className={cn(
                   "overflow-hidden transition-all duration-300 ease-in-out",
-                  showClientsDropdown ? "max-h-96 opacity-100" : "max-h-0 opacity-0",
+                  showClientsDropdown ? "max-h-[600px] opacity-100" : "max-h-0 opacity-0",
                 )}
               >
                 <div className="ml-6 mt-2 space-y-1">
+                  {/* View All Clients Link */}
+                  <Link
+                    href="/clients"
+                    className={cn(
+                      "block px-3 py-2 text-sm transition-colors rounded-md",
+                      pathname === "/clients"
+                        ? "bg-gray-800 text-white"
+                        : "text-gray-300 hover:bg-gray-900 hover:text-white",
+                    )}
+                  >
+                    View All Clients
+                  </Link>
+
                   {/* Add New Client Button */}
                   <Button
                     onClick={() => setShowAddClientDialog(true)}
@@ -113,7 +148,15 @@ export function Sidebar() {
                     Add New Client
                   </Button>
 
-                  {/* Client List */}
+                  {/* Divider */}
+                  <div className="border-t border-gray-700 my-2"></div>
+
+                  {/* Active Clients Section */}
+                  <div className="text-xs text-gray-500 px-3 py-1 font-medium uppercase tracking-wider">
+                    Active Clients ({activeClients.length})
+                  </div>
+
+                  {/* Active Client List */}
                   {loading ? (
                     <div className="space-y-2">
                       {[1, 2, 3].map((i) => (
@@ -122,21 +165,83 @@ export function Sidebar() {
                         </div>
                       ))}
                     </div>
+                  ) : activeClients.length > 0 ? (
+                    <div className="space-y-1 max-h-48 overflow-y-auto">
+                      {activeClients.map((client) => (
+                        <Link
+                          key={client.id}
+                          href={`/clients/${client.id}`}
+                          className={cn(
+                            "block px-3 py-2 text-sm transition-colors rounded-md",
+                            pathname === `/clients/${client.id}`
+                              ? "bg-gray-800 text-white"
+                              : "text-gray-300 hover:bg-gray-900 hover:text-white",
+                          )}
+                        >
+                          {client.name}
+                        </Link>
+                      ))}
+                    </div>
                   ) : (
-                    clients.map((client) => (
-                      <Link
-                        key={client.id}
-                        href={`/clients/${client.id}`}
+                    <div className="px-3 py-2 text-sm text-gray-500 italic">
+                      No active clients
+                    </div>
+                  )}
+
+                  {/* Archived Clients Dropdown */}
+                  {archivedClients.length > 0 && (
+                    <>
+                      <div className="border-t border-gray-700 my-2"></div>
+                      
+                      <div
                         className={cn(
-                          "block px-3 py-2 text-sm transition-colors rounded-md",
-                          pathname === `/clients/${client.id}`
-                            ? "bg-gray-800 text-white"
-                            : "text-gray-300 hover:bg-gray-900 hover:text-white",
+                          "flex items-center justify-between px-3 py-2 text-sm transition-colors cursor-pointer rounded-md",
+                          "text-gray-400 hover:bg-gray-900 hover:text-gray-300",
+                        )}
+                        onClick={() => setShowArchivedDropdown(!showArchivedDropdown)}
+                      >
+                        <div className="flex items-center">
+                          <Archive className="mr-3 h-4 w-4" />
+                          <span className="text-xs font-medium uppercase tracking-wider">
+                            Archived ({archivedClients.length})
+                          </span>
+                        </div>
+                        <ChevronRight
+                          className={cn(
+                            "h-3 w-3 transition-transform duration-200", 
+                            showArchivedDropdown && "rotate-90"
+                          )}
+                        />
+                      </div>
+
+                      {/* Archived Clients List */}
+                      <div
+                        className={cn(
+                          "overflow-hidden transition-all duration-300 ease-in-out",
+                          showArchivedDropdown ? "max-h-48 opacity-100" : "max-h-0 opacity-0",
                         )}
                       >
-                        {client.name}
-                      </Link>
-                    ))
+                        <div className="ml-6 space-y-1 max-h-32 overflow-y-auto">
+                          {archivedClients.map((client) => (
+                            <Link
+                              key={client.id}
+                              href={`/clients/${client.id}`}
+                              className={cn(
+                                "block px-3 py-2 text-sm transition-colors rounded-md",
+                                pathname === `/clients/${client.id}`
+                                  ? "bg-gray-800 text-amber-400"
+                                  : "text-gray-500 hover:bg-gray-900 hover:text-amber-300",
+                              )}
+                            >
+                              <div className="flex items-center">
+                                <Archive className="mr-2 h-3 w-3" />
+                                {client.name}
+                              </div>
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
+                    </>
                   )}
                 </div>
               </div>
@@ -145,7 +250,11 @@ export function Sidebar() {
         </nav>
       </div>
 
-      <AddClientDialog open={showAddClientDialog} onOpenChange={setShowAddClientDialog} onAddClient={handleAddClient} />
+      <AddClientDialog 
+        open={showAddClientDialog} 
+        onOpenChange={setShowAddClientDialog} 
+        onAddClient={handleAddClient} 
+      />
     </>
   )
 }

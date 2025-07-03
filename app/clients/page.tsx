@@ -37,37 +37,53 @@ import {
   DollarSign, 
   MoreHorizontal, 
   Edit, 
-  Trash2 
+  Trash2,
+  Archive,
+  ArchiveRestore
 } from "lucide-react"
 import { AddClientDialog } from "@/components/add-client-dialog"
 import { 
   getClients, 
   createClient, 
   renameClient, 
-  deleteClient, 
+  deleteClient,
+  archiveClient,
+  unarchiveClient,
   type Client 
 } from "@/lib/database"
 import Link from "next/link"
 import { toast } from "sonner"
 
+type ViewMode = 'active' | 'archived'
+
 export default function ClientsPage() {
   const [clients, setClients] = useState<Client[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
+  const [viewMode, setViewMode] = useState<ViewMode>('active')
   const [showAddDialog, setShowAddDialog] = useState(false)
   const [showRenameDialog, setShowRenameDialog] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [showArchiveDialog, setShowArchiveDialog] = useState(false)
   const [selectedClient, setSelectedClient] = useState<Client | null>(null)
   const [newName, setNewName] = useState("")
 
   useEffect(() => {
     loadClients()
-  }, [])
+  }, [viewMode])
 
   async function loadClients() {
     try {
       const data = await getClients()
-      setClients(data)
+      // Filter clients based on view mode
+      const filteredData = data.filter(client => {
+        if (viewMode === 'active') {
+          return client.status !== 'archived'
+        } else {
+          return client.status === 'archived'
+        }
+      })
+      setClients(filteredData)
     } catch (error) {
       console.error("Error loading clients:", error)
       toast.error("Failed to load clients")
@@ -85,7 +101,9 @@ export default function ClientsPage() {
   const handleAddClient = async (clientData: any) => {
     try {
       const newClient = await createClient(clientData)
-      setClients([newClient, ...clients])
+      if (viewMode === 'active' && newClient.status !== 'archived') {
+        setClients([newClient, ...clients])
+      }
       setShowAddDialog(false)
       toast.success("Client added successfully")
     } catch (error) {
@@ -109,6 +127,38 @@ export default function ClientsPage() {
     } catch (error) {
       console.error("Error renaming client:", error)
       toast.error("Failed to rename client")
+    }
+  }
+
+  const handleArchiveClient = async () => {
+    if (!selectedClient) return
+
+    try {
+      await archiveClient(selectedClient.id)
+      // Remove from current view if it's active view
+      if (viewMode === 'active') {
+        setClients(clients.filter(client => client.id !== selectedClient.id))
+      }
+      setShowArchiveDialog(false)
+      setSelectedClient(null)
+      toast.success("Client archived successfully")
+    } catch (error) {
+      console.error("Error archiving client:", error)
+      toast.error("Failed to archive client")
+    }
+  }
+
+  const handleUnarchiveClient = async (clientId: string) => {
+    try {
+      await unarchiveClient(clientId)
+      // Remove from archived view
+      if (viewMode === 'archived') {
+        setClients(clients.filter(client => client.id !== clientId))
+      }
+      toast.success("Client unarchived successfully")
+    } catch (error) {
+      console.error("Error unarchiving client:", error)
+      toast.error("Failed to unarchive client")
     }
   }
 
@@ -136,6 +186,11 @@ export default function ClientsPage() {
   const openDeleteDialog = (client: Client) => {
     setSelectedClient(client)
     setShowDeleteDialog(true)
+  }
+
+  const openArchiveDialog = (client: Client) => {
+    setSelectedClient(client)
+    setShowArchiveDialog(true)
   }
 
   if (loading) {
@@ -168,13 +223,44 @@ export default function ClientsPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-white">Clients</h1>
-          <p className="text-gray-400 mt-2">Manage your client relationships and projects</p>
+          <h1 className="text-3xl font-bold text-white">
+            {viewMode === 'active' ? 'Active Clients' : 'Archived Clients'}
+          </h1>
+          <p className="text-gray-400 mt-2">
+            {viewMode === 'active' 
+              ? 'Manage your active client relationships and projects' 
+              : 'View and manage archived clients'
+            }
+          </p>
         </div>
-        <Button onClick={() => setShowAddDialog(true)} className="bg-white text-black hover:bg-gray-200">
-          <Plus className="mr-2 h-4 w-4" />
-          Add New Client
-        </Button>
+        <div className="flex items-center space-x-4">
+          {/* View Mode Toggle */}
+          <div className="flex space-x-2">
+            <Button
+              size="sm"
+              variant={viewMode === 'active' ? 'default' : 'outline'}
+              onClick={() => setViewMode('active')}
+              className={viewMode === 'active' ? 'bg-white text-black' : 'border-gray-600 text-gray-300'}
+            >
+              Active
+            </Button>
+            <Button
+              size="sm"
+              variant={viewMode === 'archived' ? 'default' : 'outline'}
+              onClick={() => setViewMode('archived')}
+              className={viewMode === 'archived' ? 'bg-white text-black' : 'border-gray-600 text-gray-300'}
+            >
+              Archived
+            </Button>
+          </div>
+          
+          {viewMode === 'active' && (
+            <Button onClick={() => setShowAddDialog(true)} className="bg-white text-black hover:bg-gray-200">
+              <Plus className="mr-2 h-4 w-4" />
+              Add New Client
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="flex items-center space-x-4">
@@ -189,6 +275,18 @@ export default function ClientsPage() {
         </div>
       </div>
 
+      {/* Show info message for archived clients */}
+      {viewMode === 'archived' && (
+        <div className="bg-amber-900/20 border border-amber-700 rounded-lg p-4">
+          <h3 className="text-amber-400 font-medium mb-2">Archived Clients</h3>
+          <p className="text-amber-300 text-sm">
+            These clients have been archived and won't appear in upcoming payments or active client lists. 
+            Their data is preserved but their next payment date is set far in the future. 
+            You can unarchive them to restore normal functionality.
+          </p>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredClients.map((client) => (
           <Card key={client.id} className="bg-gray-800 border-gray-700 group relative">
@@ -201,8 +299,20 @@ export default function ClientsPage() {
                 </Link>
                 <div className="flex items-center space-x-2">
                   <Badge
-                    variant={client.status === "active" ? "default" : "secondary"}
-                    className={client.status === "active" ? "bg-green-600" : "bg-yellow-600"}
+                    variant={
+                      client.status === "archived" 
+                        ? "secondary" 
+                        : client.status === "active" 
+                          ? "default" 
+                          : "secondary"
+                    }
+                    className={
+                      client.status === "archived"
+                        ? "bg-gray-600"
+                        : client.status === "active" 
+                          ? "bg-green-600" 
+                          : "bg-yellow-600"
+                    }
                   >
                     {client.status}
                   </Badge>
@@ -221,6 +331,17 @@ export default function ClientsPage() {
                         <Edit className="mr-2 h-4 w-4" />
                         Rename
                       </DropdownMenuItem>
+                      {viewMode === 'active' ? (
+                        <DropdownMenuItem onClick={() => openArchiveDialog(client)}>
+                          <Archive className="mr-2 h-4 w-4" />
+                          Archive
+                        </DropdownMenuItem>
+                      ) : (
+                        <DropdownMenuItem onClick={() => handleUnarchiveClient(client.id)}>
+                          <ArchiveRestore className="mr-2 h-4 w-4" />
+                          Unarchive
+                        </DropdownMenuItem>
+                      )}
                       <DropdownMenuItem 
                         onClick={() => openDeleteDialog(client)}
                         className="text-red-600 focus:text-red-600"
@@ -257,7 +378,7 @@ export default function ClientsPage() {
                         ? `₹${client.weekly_rate?.toLocaleString()}/week`
                         : "Per-post pricing"}
                   </div>
-                  {client.next_payment && (
+                  {client.next_payment && viewMode === 'active' && (
                     <div className="flex items-center text-sm text-gray-300">
                       <Calendar className="mr-2 h-4 w-4" />
                       Next payment: {client.next_payment}
@@ -277,6 +398,17 @@ export default function ClientsPage() {
           </Card>
         ))}
       </div>
+
+      {filteredClients.length === 0 && (
+        <div className="text-center py-8">
+          <p className="text-gray-400">
+            {viewMode === 'active' 
+              ? 'No active clients found. Add a new client to get started.' 
+              : 'No archived clients found.'
+            }
+          </p>
+        </div>
+      )}
 
       {/* Add Client Dialog */}
       <AddClientDialog 
@@ -323,6 +455,37 @@ export default function ClientsPage() {
         </DialogContent>
       </Dialog>
 
+      {/* Archive Client Dialog */}
+      <AlertDialog open={showArchiveDialog} onOpenChange={setShowArchiveDialog}>
+        <AlertDialogContent className="bg-gray-800 border-gray-700">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white">Archive Client</AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-300">
+              Are you sure you want to archive "{selectedClient?.name}"? 
+              <br /><br />
+              <strong>What happens when you archive a client:</strong>
+              <ul className="list-disc list-inside mt-2 space-y-1">
+                <li>They won't appear in upcoming payments</li>
+                <li>They won't show in active client lists</li>
+                <li>All their data (tasks, payments, etc.) is preserved</li>
+                <li>You can unarchive them anytime to restore full functionality</li>
+              </ul>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="border-gray-600 text-gray-300 hover:bg-gray-700">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleArchiveClient}
+              className="bg-amber-600 hover:bg-amber-700 text-white"
+            >
+              Archive Client
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* Delete Client Dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent className="bg-gray-800 border-gray-700">
@@ -331,6 +494,8 @@ export default function ClientsPage() {
             <AlertDialogDescription className="text-gray-300">
               Are you sure you want to delete "{selectedClient?.name}"? This action cannot be undone.
               All associated tasks and payments will also be removed.
+              <br /><br />
+              <strong className="text-red-400">Consider archiving instead if you want to preserve data.</strong>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -341,7 +506,7 @@ export default function ClientsPage() {
               onClick={handleDeleteClient}
               className="bg-red-600 hover:bg-red-700 text-white"
             >
-              Delete
+              Delete Client
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

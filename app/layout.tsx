@@ -4,6 +4,8 @@ import { Inter } from "next/font/google"
 import "./globals.css"
 import { Sidebar } from "@/components/sidebar"
 import { Header } from "@/components/header"
+import { AutomaticTierUpdatesProvider } from "@/components/automatic-tier-updates-provider"
+import ErrorSuppressor from "./error-suppressor"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -21,13 +23,16 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className={`${inter.className} bg-black text-white`}>
-        <div className="flex h-screen">
-          <Sidebar />
-          <div className="flex-1 flex flex-col overflow-hidden">
-            <Header />
-            <main className="flex-1 overflow-auto p-6 bg-black">{children}</main>
+        <ErrorSuppressor />
+        <AutomaticTierUpdatesProvider>
+          <div className="flex h-screen">
+            <Sidebar />
+            <div className="flex-1 flex flex-col overflow-hidden">
+              <Header />
+              <main className="flex-1 overflow-auto p-6 bg-black">{children}</main>
+            </div>
           </div>
-        </div>
+        </AutomaticTierUpdatesProvider>
       </body>
     </html>
   )

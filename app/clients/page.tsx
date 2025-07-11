@@ -49,8 +49,12 @@ import {
   deleteClient,
   archiveClient,
   unarchiveClient,
-  type Client 
+  calculateTotalPaymentRate,
+  getCurrentTierInfo,
+  ensureAutomaticTierUpdates,
+  updateAllTierTransitions
 } from "@/lib/database"
+import { type Client } from "@/lib/supabase"
 import Link from "next/link"
 import { toast } from "sonner"
 
@@ -74,6 +78,9 @@ export default function ClientsPage() {
 
   async function loadClients() {
     try {
+      // Automatically update tier transitions with rate limiting
+      await ensureAutomaticTierUpdates()
+      
       const data = await getClients()
       // Filter clients based on view mode
       const filteredData = data.filter(client => {
@@ -89,6 +96,33 @@ export default function ClientsPage() {
       toast.error("Failed to load clients")
     } finally {
       setLoading(false)
+    }
+  }
+
+  // Helper function to get tier information for display
+  function getTierDisplayInfo(client: Client): { status: string; badgeColor: string; paymentRate: number } {
+    if (!client.tiered_payments || client.tiered_payments.length === 0) {
+      return {
+        status: "Normal Payment",
+        badgeColor: "bg-blue-500",
+        paymentRate: calculateTotalPaymentRate(client)
+      }
+    }
+    
+    const tierInfo = getCurrentTierInfo(client.tiered_payments, client.created_at)
+    
+    if (tierInfo.isComplete) {
+      return {
+        status: "Completed All Tiers",
+        badgeColor: "bg-green-500",
+        paymentRate: calculateTotalPaymentRate(client)
+      }
+    }
+    
+    return {
+      status: `Tier ${tierInfo.currentTierIndex + 1}`,
+      badgeColor: "bg-orange-500",
+      paymentRate: calculateTotalPaymentRate(client)
     }
   }
 
@@ -255,10 +289,33 @@ export default function ClientsPage() {
           </div>
           
           {viewMode === 'active' && (
-            <Button onClick={() => setShowAddDialog(true)} className="bg-white text-black hover:bg-gray-200">
-              <Plus className="mr-2 h-4 w-4" />
-              Add New Client
-            </Button>
+            <>
+              <Button 
+                onClick={async () => {
+                  const results = await updateAllTierTransitions()
+                  if (results.updated > 0) {
+                    toast.success(`Updated ${results.updated} client tier transitions`)
+                    loadClients() // Refresh the list
+                  } else {
+                    toast.info("All client tiers are up to date")
+                  }
+                  if (results.errors.length > 0) {
+                    toast.error(`${results.errors.length} errors occurred`)
+                    console.error('Tier update errors:', results.errors)
+                  }
+                }}
+                variant="outline"
+                size="sm"
+                className="border-orange-600 text-orange-400 hover:bg-orange-900/20"
+              >
+                <Calendar className="mr-2 h-4 w-4" />
+                Update Tiers
+              </Button>
+              <Button onClick={() => setShowAddDialog(true)} className="bg-white text-black hover:bg-gray-200">
+                <Plus className="mr-2 h-4 w-4" />
+                Add New Client
+              </Button>
+            </>
           )}
         </div>
       </div>
@@ -373,9 +430,9 @@ export default function ClientsPage() {
                   <div className="flex items-center text-sm text-gray-300">
                     <DollarSign className="mr-2 h-4 w-4" />
                     {client.payment_type === "monthly"
-                      ? `₹${client.monthly_rate?.toLocaleString()}/month`
+                      ? `₹${getTierDisplayInfo(client).paymentRate.toLocaleString()}/month`
                       : client.payment_type === "weekly"
-                        ? `₹${client.weekly_rate?.toLocaleString()}/week`
+                        ? `₹${getTierDisplayInfo(client).paymentRate.toLocaleString()}/week`
                         : "Per-post pricing"}
                   </div>
                   {client.next_payment && viewMode === 'active' && (
@@ -386,10 +443,27 @@ export default function ClientsPage() {
                   )}
                 </div>
 
+                {/* Tier Information */}
+                <div className="flex items-center justify-between">
+                  <Badge 
+                    className={`${getTierDisplayInfo(client).badgeColor} text-white text-xs`}
+                  >
+                    {getTierDisplayInfo(client).status}
+                  </Badge>
+                  {client.tiered_payments && client.tiered_payments.length > 0 && (
+                    <span className="text-xs text-gray-400">
+                      {getCurrentTierInfo(client.tiered_payments, client.created_at).isComplete 
+                        ? "All tiers completed" 
+                        : `${client.tiered_payments.length} tier${client.tiered_payments.length > 1 ? 's' : ''} total`
+                      }
+                    </span>
+                  )}
+                </div>
+
                 <div className="flex flex-wrap gap-1">
-                  {client.services.map((service) => (
+                  {Object.entries(client.services).map(([service, price]) => (
                     <Badge key={service} variant="outline" className="text-xs border-gray-600 text-gray-300">
-                      {service}
+                      {service} (₹{price})
                     </Badge>
                   ))}
                 </div>

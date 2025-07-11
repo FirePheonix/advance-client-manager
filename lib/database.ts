@@ -1,5 +1,151 @@
-import { supabase, type Client, type Payment, type Task, type TeamMember } from "./supabase"
-import { getNextPaymentDate } from './date-utils'
+import { supabase, type Client, type Payment, type Task, type TeamMember, type TieredPayment, type PostCount } from "./supabase"
+import { getNextPaymentDate, getNextPaymentDateWithFixedDay } from './date-utils'
+
+// Utility function to get monthYear from next_payment date
+export function getMonthYearFromDate(dateStr: string): string {
+  const date = new Date(dateStr)
+  return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`
+}
+
+// Helper function to calculate current payment rate from services
+export function calculateServiceRate(services: Record<string, number>): number {
+  return Object.values(services).reduce((sum, price) => sum + price, 0)
+}
+
+// Helper function to get current tiered payment rate and services
+// Synchronous version for backward compatibility
+export function getCurrentTieredRate(tieredPayments: TieredPayment[], clientStartDate: string): { baseAmount: number; services: Record<string, number> } {
+  if (!tieredPayments || tieredPayments.length === 0) {
+    return { baseAmount: 0, services: {} }
+  }
+  
+  const startDate = new Date(clientStartDate)
+  const currentDate = new Date()
+  const monthsPassed = Math.floor((currentDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24 * 30))
+  
+  let totalMonths = 0
+  for (const tier of tieredPayments) {
+    totalMonths += tier.duration_months
+    if (monthsPassed < totalMonths) {
+      return { 
+        baseAmount: tier.amount, 
+        services: tier.services || {} 
+      }
+    }
+  }
+  
+  // If we've passed all tiers, return empty (client should transition to normal payment)
+  return { baseAmount: 0, services: {} }
+}
+
+// Helper function to get current tiered payment rate and services - async version
+export async function getCurrentTieredRateByPaymentCount(tieredPayments: TieredPayment[], clientId: string, clientStartDate: string): Promise<{ baseAmount: number; services: Record<string, number> }> {
+  if (!tieredPayments || tieredPayments.length === 0) {
+    return { baseAmount: 0, services: {} }
+  }
+  
+  // Get current tier based on payment count
+  const tierInfo = await getCurrentTierInfoWithPayments(tieredPayments, clientStartDate, clientId)
+  
+  // If client has completed all tiers, return empty
+  if (tierInfo.isComplete) {
+    return { baseAmount: 0, services: {} }
+  }
+  
+  // Return current tier based on payment count
+  const currentTier = tieredPayments[tierInfo.currentTierIndex]
+  return { 
+    baseAmount: currentTier.amount, 
+    services: currentTier.services || {} 
+  }
+}
+
+// Helper function to check if client has completed all tiers
+export function hasCompletedAllTiers(tieredPayments: TieredPayment[], clientStartDate: string): boolean {
+  if (!tieredPayments || tieredPayments.length === 0) return true
+  
+  const startDate = new Date(clientStartDate)
+  const currentDate = new Date()
+  const monthsPassed = Math.floor((currentDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24 * 30))
+  
+  const totalTierMonths = tieredPayments.reduce((sum, tier) => sum + tier.duration_months, 0)
+  return monthsPassed >= totalTierMonths
+}
+
+// Helper function to calculate total payment rate (handles both tiered and normal clients)
+// Payment = Base payment amount + Sum of all service prices
+export function calculateTotalPaymentRate(client: Client): number {
+  // Check for per-post clients
+  if (client.payment_type === 'per-post') {
+    // For per-post clients, we need to get the total amount from post counts
+    // This is a synchronous function, but we can't do async here, so we'll return 0
+    // and use calculateTotalPaymentRateAsync instead for per-post clients
+    return 0;
+  }
+  
+  // Check if client has tiered payments
+  if (client.tiered_payments && client.tiered_payments.length > 0) {
+    const hasCompleted = hasCompletedAllTiers(client.tiered_payments, client.created_at)
+    
+    if (hasCompleted) {
+      // Use final payment structure - base rate + final services
+      const baseRate = client.payment_type === 'monthly' 
+        ? (client.final_monthly_rate || 0)
+        : (client.final_weekly_rate || 0)
+      return baseRate + calculateServiceRate(client.final_services || {})
+    } else {
+      // Use current tier - tier base amount + tier services
+      const currentTier = getCurrentTieredRate(client.tiered_payments, client.created_at)
+      return currentTier.baseAmount + calculateServiceRate(currentTier.services)
+    }
+  }
+  
+  // Normal payment client - base rate + services
+  const baseRate = client.payment_type === 'monthly' 
+    ? (client.monthly_rate || 0)
+    : (client.weekly_rate || 0)
+  return baseRate + calculateServiceRate(client.services)
+}
+
+// Helper function to calculate total payment rate asynchronously (for current/actual amounts)
+// NOTE: For per-post clients, this returns the ACTUAL amount based on current post counts
+// For PROJECTED MRR calculations, use calculateExpectedPerPostRevenue instead
+export async function calculateTotalPaymentRateAsync(client: Client): Promise<number> {
+  // Check for per-post clients
+  if (client.payment_type === 'per-post') {
+    // For per-post clients, use the next payment month if available
+    const nextPaymentMonthYear = client.next_payment ? getMonthYearFromDate(client.next_payment) : undefined
+    return await calculateTotalPerPostAmount(client.id, nextPaymentMonthYear);
+  }
+  
+  // Check if client has tiered payments
+  if (client.tiered_payments && client.tiered_payments.length > 0) {
+    // Get payment count to determine tier
+    const tierInfo = await getCurrentTierInfoWithPayments(
+      client.tiered_payments, 
+      client.created_at, 
+      client.id
+    )
+    
+    if (tierInfo.isComplete) {
+      // Use final payment structure - base rate + final services
+      const baseRate = client.payment_type === 'monthly' 
+        ? (client.final_monthly_rate || 0)
+        : (client.final_weekly_rate || 0)
+      return baseRate + calculateServiceRate(client.final_services || {})
+    } else {
+      // Use current tier - tier base amount + tier services
+      const currentTier = client.tiered_payments[tierInfo.currentTierIndex]
+      return (currentTier.amount || 0) + calculateServiceRate(currentTier.services || {})
+    }
+  }
+  
+  // Normal payment client - base rate + services
+  const baseRate = client.payment_type === 'monthly' 
+    ? (client.monthly_rate || 0)
+    : (client.weekly_rate || 0)
+  return baseRate + calculateServiceRate(client.services)
+}
 
 // Client operations
 export async function getClients() {
@@ -119,6 +265,21 @@ export async function createPayment(payment: Omit<Payment, "id" | "created_at">)
   const { data, error } = await supabase.from("payments").insert(payment).select().single()
 
   if (error) throw error
+  
+  // If payment is completed, trigger tier transition update and next payment date update
+  if (data.status === 'completed') {
+    try {
+      // The database trigger should handle this automatically via the trigger_tier_update_on_payment function
+      // But we'll also ensure it via JavaScript
+      await ensureClientPaymentRateUpToDate(data.client_id)
+      
+      // Update next payment date
+      await updateClientNextPayment(data.client_id, data.payment_date)
+    } catch (updateError) {
+      console.error('Error updating client after payment:', updateError)
+    }
+  }
+  
   return data as Payment
 }
 
@@ -130,12 +291,11 @@ export async function checkPaymentExists(clientId: string, dueDate: string) {
     .gte('payment_date', new Date(dueDate).toISOString().split('T')[0])
     .lte('payment_date', new Date(dueDate).toISOString().split('T')[0])
     .eq('status', 'completed')
-    .single()
 
-  if (error && error.code !== 'PGRST116') { // Ignore "No rows found" error
+  if (error) {
     throw error
   }
-  return !!data
+  return data && data.length > 0
 }
 
 // Task operations
@@ -343,12 +503,16 @@ export async function getDashboardStats() {
 
   const monthlyExpenses = teamMembers?.reduce((sum, m) => sum + Number(m.salary), 0) || 0
 
+  // Calculate projected MRR (total expected revenue from all active clients)
+  const projectedMRR = await getProjectedMRR()
+
   return {
-    monthlyRevenue,
+    monthlyRevenue, // Actual completed payments this month
+    projectedMRR, // Total expected monthly revenue from all active clients
     activeClients: activeClients || 0,
     pendingAmount,
     monthlyExpenses,
-    profitMargin: monthlyRevenue > 0 ? ((monthlyRevenue - monthlyExpenses) / monthlyRevenue) * 100 : 0,
+    profitMargin: projectedMRR > 0 ? ((projectedMRR - monthlyExpenses) / projectedMRR) * 100 : 0,
   }
 }
 
@@ -419,20 +583,65 @@ export async function getUpcomingPayments() {
 
 // Payment date update functions
 export async function updateClientNextPayment(clientId: string, currentPaymentDate: string) {
-  const nextPaymentDate = getNextPaymentDate(currentPaymentDate)
-  
-  const { data, error } = await supabase
+  // First, get the client to determine payment type
+  const { data: client, error: clientError } = await supabase
     .from("clients")
-    .update({ 
-      next_payment: nextPaymentDate,
-      updated_at: new Date().toISOString()
-    })
+    .select("payment_type, fixed_payment_day")
     .eq("id", clientId)
-    .select()
     .single()
+  
+  if (clientError) {
+    console.error('Error getting client for payment update:', clientError)
+    return null
+  }
+  
+  // Handle per-post clients with fixed payment day differently
+  if (client?.payment_type === 'per-post') {
+    const fixedDay = client.fixed_payment_day || 1
+    const nextPaymentDate = getNextPaymentDateWithFixedDay(fixedDay)
+    
+    console.log(`Updating per-post client next payment date to: ${nextPaymentDate} (fixed day: ${fixedDay})`)
+    
+    const { data, error } = await supabase
+      .from("clients")
+      .update({ 
+        next_payment: nextPaymentDate,
+        updated_at: new Date().toISOString()
+      })
+      .eq("id", clientId)
+      .select()
+      .single()
 
-  if (error) throw error
-  return data
+    if (error) {
+      console.error('Error updating per-post client next payment:', error)
+      throw error
+    }
+    return data
+  }
+  
+  // Handle regular clients - calculate next payment date manually instead of using SQL function
+  try {
+    const nextPaymentDate = getNextPaymentDate(currentPaymentDate)
+    
+    const { data, error } = await supabase
+      .from("clients")
+      .update({ 
+        next_payment: nextPaymentDate,
+        updated_at: new Date().toISOString()
+      })
+      .eq("id", clientId)
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Error updating client next payment:', error)
+      throw error
+    }
+    return data
+  } catch (error) {
+    console.error("Error calculating next payment date:", error)
+    throw error
+  }
 }
 
 export async function updateTeamMemberNextPayment(memberId: string, currentPaymentDate: string) {
@@ -499,7 +708,7 @@ export async function getUpcomingPaymentsPending() {
   // Get clients with upcoming payments that haven't been paid yet (excluding archived)
   const { data: clients, error: clientsError } = await supabase
     .from("clients")
-    .select("id, name, email, next_payment, monthly_rate, weekly_rate, payment_type")
+    .select("*")
     .neq("status", "archived") // Exclude archived clients
     .eq("status", "active")
     .not("next_payment", "is", null)
@@ -515,11 +724,8 @@ export async function getUpcomingPaymentsPending() {
     const paymentExists = await checkPaymentExists(client.id, client.next_payment!)
     
     if (!paymentExists) {
-      const amount = client.payment_type === "monthly" 
-        ? client.monthly_rate || 0
-        : client.payment_type === "weekly" 
-          ? client.weekly_rate || 0
-          : 0
+      // Calculate payment rate using async method for accuracy
+      const amount = await calculateTotalPaymentRateAsync(client)
 
       pendingPayments.push({
         client_id: client.id,
@@ -667,8 +873,9 @@ export async function getClientPaymentDistribution(limit = 10) {
   }>()
 
   data.forEach(payment => {
-    const clientId = payment.clients?.id || 'unknown'
-    const clientName = payment.clients?.name || 'Unknown'
+    const clientInfo = payment.clients as any
+    const clientId = clientInfo?.id || 'unknown'
+    const clientName = clientInfo?.name || 'Unknown'
     
     if (!clientMap.has(clientId)) {
       clientMap.set(clientId, {
@@ -695,3 +902,387 @@ export async function getClientPaymentDistribution(limit = 10) {
 
   return Array.from(clientMap.values())
 }
+
+// Post count related functions
+export async function getPostCountsForClient(clientId: string, monthYear?: string) {
+  // If no month specified, use current month
+  const currentDate = new Date()
+  const currentMonthYear = monthYear || 
+    `${currentDate.getFullYear()}-${(currentDate.getMonth() + 1).toString().padStart(2, '0')}`
+  
+  const { data, error } = await supabase
+    .from("post_counts")
+    .select("*")
+    .eq("client_id", clientId)
+    .eq("month_year", currentMonthYear)
+  
+  if (error) throw error
+  return data as PostCount[]
+}
+
+export async function updatePostCount(
+  clientId: string, 
+  platform: string, 
+  count: number,
+  monthYear?: string
+) {
+  // If no month specified, use current month
+  const currentDate = new Date()
+  const currentMonthYear = monthYear || 
+    `${currentDate.getFullYear()}-${(currentDate.getMonth() + 1).toString().padStart(2, '0')}`
+  
+  // Check if a record already exists
+  const { data: existingRecord } = await supabase
+    .from("post_counts")
+    .select("id, count")
+    .eq("client_id", clientId)
+    .eq("platform", platform)
+    .eq("month_year", currentMonthYear)
+    .single()
+  
+  if (existingRecord) {
+    // Update existing record
+    const { data, error } = await supabase
+      .from("post_counts")
+      .update({ 
+        count: count,
+        updated_at: new Date().toISOString()
+      })
+      .eq("id", existingRecord.id)
+      .select()
+      .single()
+    
+    if (error) throw error
+    return data as PostCount
+  } else {
+    // Create new record
+    const { data, error } = await supabase
+      .from("post_counts")
+      .insert({
+        client_id: clientId,
+        platform,
+        count,
+        month_year: currentMonthYear
+      })
+      .select()
+      .single()
+    
+    if (error) throw error
+    return data as PostCount
+  }
+}
+
+export async function resetPostCounts(clientId: string, monthYear?: string) {
+  // If no month specified, use current month
+  const currentDate = new Date()
+  const currentMonthYear = monthYear || 
+    `${currentDate.getFullYear()}-${(currentDate.getMonth() + 1).toString().padStart(2, '0')}`
+  
+  // Get current counts before resetting (for payment record)
+  const { data: currentCounts } = await supabase
+    .from("post_counts")
+    .select("platform, count")
+    .eq("client_id", clientId)
+    .eq("month_year", currentMonthYear)
+  
+  // Reset all post counts for the client in the current month
+  const { error } = await supabase
+    .from("post_counts")
+    .update({ count: 0, updated_at: new Date().toISOString() })
+    .eq("client_id", clientId)
+    .eq("month_year", currentMonthYear)
+  
+  if (error) throw error
+  
+  // Return the previous counts before reset
+  return currentCounts || []
+}
+
+export async function calculateTotalPerPostAmount(clientId: string, monthYear?: string) {
+  // Get the client to get per_post_rates
+  const { data: client, error: clientError } = await supabase
+    .from("clients")
+    .select("per_post_rates")
+    .eq("id", clientId)
+    .single()
+  
+  if (clientError) throw clientError
+  
+  // Get current post counts
+  const postCounts = await getPostCountsForClient(clientId, monthYear)
+  
+  // Calculate total amount
+  let totalAmount = 0
+  
+  postCounts.forEach(postCount => {
+    const ratePerPost = client.per_post_rates?.[postCount.platform] || 0
+    totalAmount += postCount.count * ratePerPost
+  })
+  
+  return totalAmount
+}
+
+export async function createPerPostPayment(clientId: string, amount: number, postCounts: any[], monthYear?: string) {
+  const today = new Date().toISOString().split('T')[0]
+  
+  // Convert post counts to platform breakdown
+  const platformBreakdown = postCounts.reduce((acc, item) => {
+    acc[item.platform] = item.count
+    return acc
+  }, {} as Record<string, number>)
+  
+  // Create payment record
+  const { data, error } = await supabase
+    .from("payments")
+    .insert({
+      client_id: clientId,
+      amount,
+      payment_date: today,
+      status: "completed",
+      description: "Per-post payment",
+      type: "post",
+      post_count: postCounts.reduce((sum, item) => sum + item.count, 0),
+      platform_breakdown: platformBreakdown
+    })
+    .select()
+    .single()
+  
+  if (error) throw error
+  
+  // Reset post counts for the specific month
+  await resetPostCounts(clientId, monthYear)
+  
+  // Update client's next payment date using the consistent method
+  await updateClientNextPayment(clientId, today)
+  
+  return data
+}
+
+// Function to calculate projected Monthly Recurring Revenue (MRR)
+export async function getProjectedMRR(): Promise<number> {
+  // Get all active clients (not archived)
+  const { data: activeClients, error } = await supabase
+    .from("clients")
+    .select("*")
+    .neq("status", "archived")
+
+  if (error) throw error
+
+  let projectedMRR = 0
+
+  for (const client of activeClients || []) {
+    if (client.payment_type === "per-post") {
+      // For per-post clients, use expected revenue
+      const expectedRevenue = await calculateExpectedPerPostRevenue(client.id)
+      projectedMRR += expectedRevenue
+    } else {
+      // For monthly/weekly clients, calculate their current payment rate
+      const clientRate = await calculateTotalPaymentRateAsync(client)
+      
+      // Convert to monthly rate if needed
+      if (client.payment_type === "weekly") {
+        // Convert weekly to monthly (4.33 weeks in a month on average)
+        projectedMRR += clientRate * 4.33
+      } else if (client.payment_type === "monthly") {
+        projectedMRR += clientRate
+      }
+    }
+  }
+
+  return Math.round(projectedMRR)
+}
+
+// Function to calculate expected monthly revenue for per-post clients (for Projected MRR)
+export async function calculateExpectedPerPostRevenue(clientId: string): Promise<number> {
+  // Get the client to get per_post_rates and next_payment date
+  const { data: client, error: clientError } = await supabase
+    .from("clients")
+    .select("per_post_rates, next_payment")
+    .eq("id", clientId)
+    .single()
+  
+  if (clientError) throw clientError
+  
+  if (!client.per_post_rates || !client.next_payment) return 0
+  
+  // Get the month-year for the next payment
+  const nextPaymentMonthYear = getMonthYearFromDate(client.next_payment)
+  
+  // Calculate total amount based on current post counts for the next payment month
+  const totalAmount = await calculateTotalPerPostAmount(clientId, nextPaymentMonthYear)
+  
+  return totalAmount
+}
+
+// Helper function to get current tier based on payment count
+export async function getCurrentTierInfoWithPayments(
+  tieredPayments: TieredPayment[],
+  clientStartDate: string,
+  clientId: string
+): Promise<{ currentTierIndex: number; isComplete: boolean; paymentsInCurrentTier: number; totalPayments: number }> {
+  if (!tieredPayments || tieredPayments.length === 0) {
+    return { 
+      currentTierIndex: -1, 
+      isComplete: true,
+      paymentsInCurrentTier: 0,
+      totalPayments: 0
+    }
+  }
+  
+  // Get completed payments count for this client
+  const { data: payments } = await supabase
+    .from("payments")
+    .select("id")
+    .eq("client_id", clientId)
+    .eq("status", "completed")
+  
+  const paymentCount = payments?.length || 0
+  
+  // Find current tier based on payment count
+  let totalDuration = 0
+  for (let i = 0; i < tieredPayments.length; i++) {
+    const tier = tieredPayments[i]
+    const previousTotalDuration = totalDuration
+    
+    // Add the current tier's duration
+    totalDuration += tier.duration_months
+    
+    // If payment count is less than total duration, we're in this tier
+    if (paymentCount < totalDuration) {
+      return {
+        currentTierIndex: i,
+        isComplete: false,
+        paymentsInCurrentTier: paymentCount - previousTotalDuration,
+        totalPayments: paymentCount
+      }
+    }
+  }
+  
+  // If we've reached here, all tiers are complete
+  return {
+    currentTierIndex: tieredPayments.length - 1,
+    isComplete: true,
+    paymentsInCurrentTier: 0,
+    totalPayments: paymentCount
+  }
+}
+
+// Alias for backward compatibility
+export const getCurrentTierInfo = getCurrentTierInfoWithPayments;
+
+// Ensure client payment rate is up to date with tier transitions
+export async function ensureClientPaymentRateUpToDate(clientId: string) {
+  try {
+    // Get client details
+    const { data: client, error: clientError } = await supabase
+      .from("clients")
+      .select("*")
+      .eq("id", clientId)
+      .single()
+    
+    if (clientError) throw clientError
+    if (!client) return null
+    
+    // If client has tiered payments, check if we need to update
+    if (client.tiered_payments && client.tiered_payments.length > 0) {
+      const tierInfo = await getCurrentTierInfoWithPayments(
+        client.tiered_payments,
+        client.created_at,
+        client.id
+      )
+      
+      // If client tier index is different from what we calculated, update it
+      if (client.current_tier_index !== tierInfo.currentTierIndex || 
+          client.payment_count !== tierInfo.totalPayments) {
+        
+        const updates: Partial<Client> = {
+          current_tier_index: tierInfo.currentTierIndex,
+          payment_count: tierInfo.totalPayments,
+          updated_at: new Date().toISOString()
+        }
+        
+        const { data, error } = await supabase
+          .from("clients")
+          .update(updates)
+          .eq("id", clientId)
+          .select()
+          .single()
+        
+        if (error) throw error
+        return data as Client
+      }
+    }
+    
+    return null // No update needed
+  } catch (error) {
+    console.error("Error ensuring client payment rate is up to date:", error)
+    return null
+  }
+}
+
+// Update client tier based on payment count
+export async function updateClientTierByPaymentCount(clientId: string) {
+  return await ensureClientPaymentRateUpToDate(clientId)
+}
+
+// Force update next payment date based on payment type
+export async function forceUpdateNextPaymentDate(clientId: string) {
+  try {
+    // Get client details
+    const { data: client, error: clientError } = await supabase
+      .from("clients")
+      .select("*")
+      .eq("id", clientId)
+      .single()
+    
+    if (clientError) throw clientError
+    if (!client) return null
+    
+    // Calculate next payment date using the current payment date
+    const today = new Date().toISOString().split('T')[0]
+    
+    // Use the existing updateClientNextPayment function for consistency
+    return await updateClientNextPayment(clientId, today)
+  } catch (error) {
+    console.error("Error updating next payment date:", error)
+    return null
+  }
+}
+
+// Ensure automatic tier updates for all clients
+export async function ensureAutomaticTierUpdates() {
+  try {
+    // Get all clients with tiered payments
+    const { data: clients, error } = await supabase
+      .from("clients")
+      .select("id, tiered_payments")
+      .eq("status", "active")
+      .not("tiered_payments", "is", null)
+    
+    if (error) throw error
+    
+    // Filter out clients with empty tiered_payments arrays
+    const clientsWithTiers = clients?.filter(client => 
+      client.tiered_payments && 
+      Array.isArray(client.tiered_payments) && 
+      client.tiered_payments.length > 0
+    ) || []
+    
+    // Update each client
+    const results = []
+    for (const client of clientsWithTiers) {
+      const result = await ensureClientPaymentRateUpToDate(client.id)
+      if (result) {
+        results.push(result)
+      }
+    }
+    
+    return results
+  } catch (error) {
+    console.error("Error in automatic tier updates:", error)
+    return []
+  }
+}
+
+// Alias for backward compatibility
+export const updateAllTierTransitions = ensureAutomaticTierUpdates;

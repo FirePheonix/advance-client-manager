@@ -16,36 +16,19 @@ export function getNextPaymentDate(currentDate: string | Date): string {
     nextYear++;
   }
   
-  // Get the number of days in the next month
-  const daysInNextMonth = new Date(nextYear, nextMonth + 1, 0).getDate();
+  // Create a date with the same day in the next month
+  // JavaScript will automatically adjust if the day doesn't exist
+  let nextPaymentDate = new Date(nextYear, nextMonth, currentDay);
   
-  let nextDay = currentDay;
-  
-  // Handle edge cases:
-  
-  // 1. If current day is 31st and next month has fewer days
-  if (currentDay === 31) {
-    if (daysInNextMonth < 31) {
-      nextDay = daysInNextMonth; // Use last day of next month
-    }
+  // If the month got adjusted (e.g., Feb 31 -> Mar 3), 
+  // set to the last day of the intended month
+  if (nextPaymentDate.getMonth() !== nextMonth) {
+    // Set to last day of the intended month
+    nextPaymentDate = new Date(nextYear, nextMonth + 1, 0);
   }
   
-  // 2. If current day is 30th and next month is February
-  else if (currentDay === 30 && nextMonth === 1) { // February
-    nextDay = daysInNextMonth; // 28 or 29
-  }
+  console.log(`Next payment date: ${currentDate} -> ${nextPaymentDate.toISOString().split('T')[0]}`)
   
-  // 3. If current day is 29th and next month is February (non-leap year)
-  else if (currentDay === 29 && nextMonth === 1 && daysInNextMonth === 28) {
-    nextDay = 28;
-  }
-  
-  // 4. General case: if current day doesn't exist in next month
-  else if (currentDay > daysInNextMonth) {
-    nextDay = daysInNextMonth;
-  }
-  
-  const nextPaymentDate = new Date(nextYear, nextMonth, nextDay);
   return nextPaymentDate.toISOString().split('T')[0]; // Return YYYY-MM-DD format
 }
 
@@ -75,5 +58,35 @@ export function testDateCalculations() {
     const passed = result === expected;
     console.log(`${input} -> ${result} (expected: ${expected}) ${passed ? '✅' : '❌'}`);
   });
+}
+
+export function getNextPaymentDateWithFixedDay(fixedDay: number): string {
+  const now = new Date();
+  const currentMonth = now.getMonth();
+  const currentYear = now.getFullYear();
+  const currentDay = now.getDate();
+  
+  // Start with next month
+  let targetMonth = currentMonth + 1;
+  let targetYear = currentYear;
+  
+  // Handle year rollover
+  if (targetMonth > 11) {
+    targetMonth = 0;
+    targetYear++;
+  }
+  
+  // Create date with fixed day in next month
+  let nextPaymentDate = new Date(targetYear, targetMonth, fixedDay);
+  
+  // If the day doesn't exist in that month (e.g., Feb 31), 
+  // set to last day of the month
+  if (nextPaymentDate.getMonth() !== targetMonth) {
+    nextPaymentDate = new Date(targetYear, targetMonth + 1, 0);
+  }
+  
+  console.log(`Next payment date with fixed day ${fixedDay}: ${nextPaymentDate.toISOString().split('T')[0]}`)
+  
+  return nextPaymentDate.toISOString().split('T')[0]; // Return YYYY-MM-DD format
 }
 

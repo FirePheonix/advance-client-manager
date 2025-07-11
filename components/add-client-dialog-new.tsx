@@ -30,6 +30,7 @@ interface ServiceEntry {
 }
 
 interface TieredPaymentEntry {
+  amount: number
   duration_months: number
   payment_type: "monthly" | "weekly"
   services: ServiceEntry[]
@@ -55,13 +56,15 @@ export function AddClientDialog({ open, onOpenChange, onAddClient }: AddClientDi
     gst_number: "",
     poc_phone: "",
     paymentType: "monthly",
+    monthlyRate: "",
+    weeklyRate: "",
     nextPayment: "",
-    fixedPaymentDay: 1, // Default to 1st of month
     services: [] as ServiceEntry[], // For normal payment clients
     perPostRates: {} as Record<string, number>,
-    customPostTypes: [] as string[], // Array of custom post types
     tieredPayments: [] as TieredPaymentEntry[],
-    // Final services (after tiers complete) 
+    // Final payment structure (after tiers complete) 
+    finalMonthlyRate: "",
+    finalWeeklyRate: "",
     finalServices: [] as ServiceEntry[],
     notes: "",
     useTieredPayments: false,
@@ -120,6 +123,7 @@ export function AddClientDialog({ open, onOpenChange, onAddClient }: AddClientDi
     setFormData((prev) => ({
       ...prev,
       tieredPayments: [...prev.tieredPayments, { 
+        amount: 0, 
         duration_months: 1, 
         payment_type: prev.paymentType === "weekly" ? "weekly" : "monthly",
         services: []
@@ -189,55 +193,6 @@ export function AddClientDialog({ open, onOpenChange, onAddClient }: AddClientDi
     }))
   }
 
-  // Custom post type functions
-  const addCustomPostType = () => {
-    setFormData((prev) => ({
-      ...prev,
-      customPostTypes: [...prev.customPostTypes, ""],
-    }))
-  }
-
-  const removeCustomPostType = (index: number) => {
-    setFormData((prev) => {
-      const updatedCustomTypes = [...prev.customPostTypes]
-      const removedType = updatedCustomTypes[index]
-      
-      // Also remove from perPostRates if it exists
-      const updatedRates = { ...prev.perPostRates }
-      if (removedType && removedType in updatedRates) {
-        delete updatedRates[removedType]
-      }
-      
-      return {
-        ...prev,
-        customPostTypes: updatedCustomTypes.filter((_, i) => i !== index),
-        perPostRates: updatedRates
-      }
-    })
-  }
-
-  const updateCustomPostType = (index: number, value: string) => {
-    setFormData((prev) => {
-      const oldType = prev.customPostTypes[index]
-      const updatedCustomTypes = [...prev.customPostTypes]
-      updatedCustomTypes[index] = value
-      
-      // Transfer the rate from old type name to new type name
-      const updatedRates = { ...prev.perPostRates }
-      if (oldType && oldType in updatedRates) {
-        const rate = updatedRates[oldType]
-        delete updatedRates[oldType]
-        updatedRates[value] = rate
-      }
-      
-      return {
-        ...prev,
-        customPostTypes: updatedCustomTypes,
-        perPostRates: updatedRates
-      }
-    })
-  }
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -257,9 +212,9 @@ export function AddClientDialog({ open, onOpenChange, onAddClient }: AddClientDi
       return acc
     }, {} as Record<string, number>)
 
-    // Convert tiered payments with services (no base amount)
+    // Convert tiered payments with services
     const tieredPaymentsData = formData.tieredPayments.map(tier => ({
-      amount: 0, // No base amount - payment is sum of services only
+      amount: tier.amount,
       duration_months: tier.duration_months,
       payment_type: tier.payment_type,
       services: tier.services.reduce((acc, service) => {
@@ -280,15 +235,14 @@ export function AddClientDialog({ open, onOpenChange, onAddClient }: AddClientDi
       gst_number: formData.gst_number || null,
       poc_phone: formData.poc_phone || null,
       payment_type: formData.paymentType,
-      monthly_rate: null, // No base rate - payment is sum of services
-      weekly_rate: null, // No base rate - payment is sum of services
+      monthly_rate: formData.monthlyRate ? Number.parseFloat(formData.monthlyRate) : null,
+      weekly_rate: formData.weeklyRate ? Number.parseFloat(formData.weeklyRate) : null,
       next_payment: formData.nextPayment || null,
-      fixed_payment_day: formData.paymentType === 'per-post' ? formData.fixedPaymentDay : null,
       services: servicesRecord,
       per_post_rates: Object.keys(formData.perPostRates).length > 0 ? formData.perPostRates : {},
       tiered_payments: tieredPaymentsData,
-      final_monthly_rate: null, // No base rate - payment is sum of services
-      final_weekly_rate: null, // No base rate - payment is sum of services
+      final_monthly_rate: formData.finalMonthlyRate ? Number.parseFloat(formData.finalMonthlyRate) : null,
+      final_weekly_rate: formData.finalWeeklyRate ? Number.parseFloat(formData.finalWeeklyRate) : null,
       final_services: finalServicesRecord,
       notes: formData.notes || null,
       status: "active",
@@ -306,12 +260,14 @@ export function AddClientDialog({ open, onOpenChange, onAddClient }: AddClientDi
       gst_number: "",
       poc_phone: "",
       paymentType: "monthly",
+      monthlyRate: "",
+      weeklyRate: "",
       nextPayment: "",
-      fixedPaymentDay: 1,
       services: [],
       perPostRates: {},
-      customPostTypes: [],
       tieredPayments: [],
+      finalMonthlyRate: "",
+      finalWeeklyRate: "",
       finalServices: [],
       notes: "",
       useTieredPayments: false,
@@ -449,19 +405,7 @@ export function AddClientDialog({ open, onOpenChange, onAddClient }: AddClientDi
               {/* Tiered Payments Structure */}
               {formData.useTieredPayments ? (
                 <div className="space-y-6 p-4 border border-gray-700 rounded-lg bg-gray-900/50">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-lg font-medium text-white">Tiered Payment Structure</h4>
-                    <div className="space-y-2">
-                      <Label htmlFor="tieredNextPayment">Next Payment Date</Label>
-                      <Input
-                        id="tieredNextPayment"
-                        type="date"
-                        value={formData.nextPayment}
-                        onChange={(e) => setFormData((prev) => ({ ...prev, nextPayment: e.target.value }))}
-                        className="bg-black border-gray-800"
-                      />
-                    </div>
-                  </div>
+                  <h4 className="text-lg font-medium text-white">Tiered Payment Structure</h4>
                   
                   {/* Add Tier Button */}
                   <div className="flex justify-end">
@@ -495,8 +439,8 @@ export function AddClientDialog({ open, onOpenChange, onAddClient }: AddClientDi
                         </Button>
                       </div>
                       
-                      {/* Duration Settings */}
-                      <div className="grid grid-cols-2 gap-4">
+                      {/* Duration and Base Rate */}
+                      <div className="grid grid-cols-3 gap-4">
                         <div className="space-y-2">
                           <Label>Duration</Label>
                           <Input
@@ -521,6 +465,16 @@ export function AddClientDialog({ open, onOpenChange, onAddClient }: AddClientDi
                               <SelectItem value="weekly">Weeks</SelectItem>
                             </SelectContent>
                           </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Base Rate (₹)</Label>
+                          <Input
+                            type="number"
+                            placeholder="Amount"
+                            value={tier.amount || ""}
+                            onChange={(e) => updateTieredPayment(tierIndex, "amount", Number.parseFloat(e.target.value) || 0)}
+                            className="bg-black border-gray-800"
+                          />
                         </div>
                       </div>
 
@@ -581,6 +535,33 @@ export function AddClientDialog({ open, onOpenChange, onAddClient }: AddClientDi
                       Final Payment Structure (After All Tiers Complete)
                     </h5>
                     
+                    {/* Final Base Rate */}
+                    {formData.paymentType === "monthly" && (
+                      <div className="space-y-2">
+                        <Label htmlFor="finalMonthlyRate">Final Monthly Rate (₹)</Label>
+                        <Input
+                          id="finalMonthlyRate"
+                          type="number"
+                          value={formData.finalMonthlyRate}
+                          onChange={(e) => setFormData((prev) => ({ ...prev, finalMonthlyRate: e.target.value }))}
+                          className="bg-black border-gray-800"
+                        />
+                      </div>
+                    )}
+
+                    {formData.paymentType === "weekly" && (
+                      <div className="space-y-2">
+                        <Label htmlFor="finalWeeklyRate">Final Weekly Rate (₹)</Label>
+                        <Input
+                          id="finalWeeklyRate"
+                          type="number"
+                          value={formData.finalWeeklyRate}
+                          onChange={(e) => setFormData((prev) => ({ ...prev, finalWeeklyRate: e.target.value }))}
+                          className="bg-black border-gray-800"
+                        />
+                      </div>
+                    )}
+
                     {/* Final Services */}
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
@@ -630,17 +611,55 @@ export function AddClientDialog({ open, onOpenChange, onAddClient }: AddClientDi
                 <div className="space-y-4 p-4 border border-gray-700 rounded-lg bg-gray-900/50">
                   <h4 className="text-lg font-medium text-white">Standard Payment Structure</h4>
                   
-                  {/* Next Payment Date */}
-                  <div className="space-y-2">
-                    <Label htmlFor="nextPayment">Next Payment Date</Label>
-                    <Input
-                      id="nextPayment"
-                      type="date"
-                      value={formData.nextPayment}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, nextPayment: e.target.value }))}
-                      className="bg-black border-gray-800"
-                    />
-                  </div>
+                  {formData.paymentType === "monthly" && (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="monthlyRate">Monthly Rate (₹)</Label>
+                        <Input
+                          id="monthlyRate"
+                          type="number"
+                          value={formData.monthlyRate}
+                          onChange={(e) => setFormData((prev) => ({ ...prev, monthlyRate: e.target.value }))}
+                          className="bg-black border-gray-800"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="nextPayment">Next Payment Date</Label>
+                        <Input
+                          id="nextPayment"
+                          type="date"
+                          value={formData.nextPayment}
+                          onChange={(e) => setFormData((prev) => ({ ...prev, nextPayment: e.target.value }))}
+                          className="bg-black border-gray-800"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {formData.paymentType === "weekly" && (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="weeklyRate">Weekly Rate (₹)</Label>
+                        <Input
+                          id="weeklyRate"
+                          type="number"
+                          value={formData.weeklyRate}
+                          onChange={(e) => setFormData((prev) => ({ ...prev, weeklyRate: e.target.value }))}
+                          className="bg-black border-gray-800"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="nextPayment">Next Payment Date</Label>
+                        <Input
+                          id="nextPayment"
+                          type="date"
+                          value={formData.nextPayment}
+                          onChange={(e) => setFormData((prev) => ({ ...prev, nextPayment: e.target.value }))}
+                          className="bg-black border-gray-800"
+                        />
+                      </div>
+                    </div>
+                  )}
 
                   {/* Normal Services */}
                   <div className="space-y-4">
@@ -691,120 +710,20 @@ export function AddClientDialog({ open, onOpenChange, onAddClient }: AddClientDi
 
           {formData.paymentType === "per-post" && (
             <div className="space-y-4">
+              <Label>Per Post Rates (₹)</Label>
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="fixedPaymentDay">Fixed Payment Day (Monthly)</Label>
-                  <div className="flex items-center space-x-2">
-                    <Select
-                      value={formData.fixedPaymentDay.toString()}
-                      onValueChange={(value) => setFormData(prev => ({ ...prev, fixedPaymentDay: parseInt(value) }))}
-                    >
-                      <SelectTrigger className="bg-black border-gray-800 text-white">
-                        <SelectValue placeholder="Select day of month" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Array.from({ length: 28 }, (_, i) => i + 1).map((day) => (
-                          <SelectItem key={day} value={day.toString()}>
-                            {day}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <span className="text-gray-400">of every month</span>
+                {postTypes.map((postType) => (
+                  <div key={postType} className="flex items-center space-x-2">
+                    <Label className="text-sm flex-1">{postType}</Label>
+                    <Input
+                      type="number"
+                      placeholder="0"
+                      value={formData.perPostRates[postType] || ""}
+                      onChange={(e) => handlePerPostRateChange(postType, e.target.value)}
+                      className="bg-black border-gray-800 w-20"
+                    />
                   </div>
-                  <p className="text-xs text-gray-400">
-                    This client will be billed on this day of each month based on total posts
-                  </p>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="nextPayment">Next Payment Date</Label>
-                  <Input
-                    id="nextPayment"
-                    type="date"
-                    value={formData.nextPayment}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, nextPayment: e.target.value }))}
-                    className="bg-black border-gray-800"
-                  />
-                  <p className="text-xs text-gray-400">
-                    Leave blank to automatically set based on fixed payment day
-                  </p>
-                </div>
-              </div>
-
-              <div className="border-t border-gray-800 pt-4">
-                <Label className="text-lg font-medium mb-2 block">Per Post Rates (₹)</Label>
-                <p className="text-sm text-gray-400 mb-4">
-                  Set the rate for each type of post. The client will be billed based on the number of posts created each month.
-                </p>
-                
-                {/* Default post types */}
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  {postTypes.map((postType) => (
-                    <div key={postType} className="flex items-center space-x-2 border border-gray-800 rounded-md p-3">
-                      <Label className="text-sm flex-1">{postType}</Label>
-                      <div className="relative">
-                        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">₹</span>
-                        <Input
-                          type="number"
-                          placeholder="0"
-                          value={formData.perPostRates[postType] || ""}
-                          onChange={(e) => handlePerPostRateChange(postType, e.target.value)}
-                          className="bg-black border-gray-800 w-24 pl-7"
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                
-                {/* Custom post types */}
-                {formData.customPostTypes.length > 0 && (
-                  <div className="mt-4">
-                    <Label className="text-base font-medium mb-2 block">Custom Post Types</Label>
-                    <div className="space-y-3">
-                      {formData.customPostTypes.map((postType, index) => (
-                        <div key={index} className="flex items-center space-x-2 border border-gray-800 rounded-md p-3">
-                          <Input
-                            placeholder="Custom post type"
-                            value={postType}
-                            onChange={(e) => updateCustomPostType(index, e.target.value)}
-                            className="bg-black border-gray-800 flex-1"
-                          />
-                          <div className="relative flex-shrink-0">
-                            <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">₹</span>
-                            <Input
-                              type="number"
-                              placeholder="0"
-                              value={formData.perPostRates[postType] || ""}
-                              onChange={(e) => handlePerPostRateChange(postType, e.target.value)}
-                              className="bg-black border-gray-800 w-24 pl-7"
-                            />
-                          </div>
-                          <Button
-                            type="button"
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => removeCustomPostType(index)}
-                            className="flex-shrink-0"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                
-                {/* Add custom post type button */}
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={addCustomPostType}
-                  className="mt-4 border-blue-600 text-blue-400 hover:bg-blue-900/20"
-                >
-                  <Plus className="h-4 w-4 mr-2" /> Add Custom Post Type
-                </Button>
+                ))}
               </div>
             </div>
           )}

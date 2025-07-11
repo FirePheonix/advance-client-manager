@@ -4,13 +4,15 @@ import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { DollarSign, TrendingUp, Calendar, AlertCircle } from "lucide-react"
+import { IndianRupee , TrendingUp, Calendar, AlertCircle } from "lucide-react"
 import { 
   getPaymentsByPeriod, 
   getOtherExpensesByPeriod, 
   getTeamSalariesByPeriod,
   getUpcomingPaymentsPending,
-  getUpcomingTeamPaymentsPending 
+  getUpcomingTeamPaymentsPending,
+  getDashboardStats,
+  getProjectedMRR
 } from "@/lib/database"
 
 interface DashboardStatsData {
@@ -22,6 +24,7 @@ interface DashboardStatsData {
   pendingClientPayments: number
   pendingTeamPayments: number
   totalPendingPayments: number
+  projectedMRR: number // Projected Monthly Recurring Revenue from backend
 }
 
 type ViewMode = 'year' | 'month'
@@ -77,6 +80,12 @@ export function DashboardStats() {
         previousEndDate = `${prevYear}-${prevMonth.toString().padStart(2, '0')}-${daysInPrevMonth}`
       }
 
+      // Get current month for the projected MRR calculation
+      const currentDate = new Date()
+      const currentMonthStart = `${currentDate.getFullYear()}-${(currentDate.getMonth() + 1).toString().padStart(2, '0')}-01`
+      const currentMonthEnd = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0)
+        .toISOString().split('T')[0]
+
       // Fetch current period data
       const [
         currentRevenue,
@@ -86,7 +95,8 @@ export function DashboardStats() {
         previousOtherExpenses,
         previousTeamSalaries,
         pendingClientPayments,
-        pendingTeamPayments
+        pendingTeamPayments,
+        projectedMRRValue
       ] = await Promise.all([
         getPaymentsByPeriod(startDate, endDate),
         getOtherExpensesByPeriod(startDate, endDate),
@@ -95,7 +105,8 @@ export function DashboardStats() {
         getOtherExpensesByPeriod(previousStartDate, previousEndDate),
         getTeamSalariesByPeriod(previousStartDate, previousEndDate),
         getUpcomingPaymentsPending(),
-        getUpcomingTeamPaymentsPending()
+        getUpcomingTeamPaymentsPending(),
+        getProjectedMRR()
       ])
 
       // Calculate current period metrics
@@ -122,6 +133,9 @@ export function DashboardStats() {
       const pendingClientAmount = pendingClientPayments.reduce((sum, payment) => sum + Number(payment.amount), 0)
       const pendingTeamAmount = pendingTeamPayments.reduce((sum, payment) => sum + Number(payment.amount), 0)
 
+      // Use the backend calculated projected MRR
+      const projectedMRR = projectedMRRValue
+
       const statsData: DashboardStatsData = {
         totalRevenue,
         totalOtherExpenses,
@@ -130,7 +144,8 @@ export function DashboardStats() {
         profitPercentage,
         pendingClientPayments: pendingClientAmount,
         pendingTeamPayments: pendingTeamAmount,
-        totalPendingPayments: pendingClientAmount + pendingTeamAmount
+        totalPendingPayments: pendingClientAmount + pendingTeamAmount,
+        projectedMRR
       }
 
       setStats(statsData)
@@ -193,8 +208,8 @@ export function DashboardStats() {
         </div>
         
         {/* Stats Cards Skeleton */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[1, 2, 3, 4].map((i) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+          {[1, 2, 3, 4, 5].map((i) => (
             <Card key={i} className="bg-black border-gray-800">
               <CardContent className="p-6">
                 <div className="animate-pulse">
@@ -215,10 +230,18 @@ export function DashboardStats() {
 
   const statsData = [
     {
+      title: "Projected MRR",
+      value: formatCurrency(stats.projectedMRR),
+      change: `Net Monthly Recurring Revenue`,
+      icon: TrendingUp,
+      color: stats.projectedMRR >= 0 ? "text-green-400" : "text-red-400",
+      description: "Expected Client Payments - Expected Team Payments for current month"
+    },
+    {
       title: "Net Result",
       value: formatCurrency(stats.netExpenses),
       change: `${formatPercentage(stats.profitPercentage)} ${getPreviousPeriodText()}`,
-      icon: DollarSign,
+      icon: IndianRupee,
       color: stats.netExpenses >= 0 ? "text-green-400" : "text-red-400",
       description: "Revenue - Total Expenses"
     },
@@ -315,7 +338,7 @@ export function DashboardStats() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
         {statsData.map((stat) => (
           <Card key={stat.title} className="bg-black border-gray-800">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

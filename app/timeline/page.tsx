@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Calendar, Filter, DollarSign, TrendingUp, Users, Search } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
-import { getPayments, getClients, checkPaymentExists } from "@/lib/database"
+import { getPayments, getClients, checkPaymentExists, calculateTotalPaymentRate } from "@/lib/database"
 import { Badge } from "@/components/ui/badge"
 
 interface TimelinePayment {
@@ -88,11 +88,7 @@ export default function TimelinePage() {
             id: client.id,
             client: client.name,
             clientEmail: client.email,
-            amount: client.payment_type === "monthly" 
-              ? client.monthly_rate || 0
-              : client.payment_type === "weekly" 
-                ? client.weekly_rate || 0
-                : 0,
+            amount: calculateTotalPaymentRate(client),
             dueDate: dueDate.toLocaleDateString(),
             status: paymentExists ? "paid" : (daysUntilDue < 0 ? "overdue" : "pending"),
             daysUntilDue,

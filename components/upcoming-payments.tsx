@@ -5,7 +5,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Calendar, Mail, Check, X, Send, Download } from "lucide-react"
-import { getClients, createPayment, checkPaymentExists, updateClientNextPayment } from "@/lib/database"
+import { 
+  getClients, 
+  createPayment, 
+  checkPaymentExists, 
+  updateClientNextPayment, 
+  getClientById, 
+  calculateTotalPaymentRate, 
+  ensureAutomaticTierUpdates,
+  calculateTotalPaymentRateAsync,
+  resetPostCounts,
+  getPostCountsForClient,
+  createPerPostPayment
+} from "@/lib/database"
 import type { Client } from "@/lib/supabase"
 import { toast } from "sonner"
 
@@ -34,6 +46,7 @@ export function UpcomingPayments() {
   const [loading, setLoading] = useState(true)
   const [showInvoiceForm, setShowInvoiceForm] = useState(false)
   const [selectedPayment, setSelectedPayment] = useState<UpcomingPayment | null>(null)
+  const [invoiceServices, setInvoiceServices] = useState<Array<{ name: string; amount: number }>>([])
   const [invoiceData, setInvoiceData] = useState<InvoiceData>({
     personName: '',
     companyName: '',
@@ -43,62 +56,99 @@ export function UpcomingPayments() {
     services: 'Social Media Services'
   })
   const [isGenerating, setIsGenerating] = useState(false)
+  const [isLoadingClientData, setIsLoadingClientData] = useState(false)
   const invoiceRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    async function loadPayments() {
-      try {
-        const today = new Date()
-        const nextWeek = new Date()
-        nextWeek.setDate(today.getDate() + 7)
-
-        // Fetch all clients with their next_payment dates
-        const clients = await getClients()
-        
-        // Create array of payment promises with payment status checks
-        const upcomingPaymentsPromises = clients
-          .filter(client => client.next_payment)
-          .map(async (client) => {
-            const dueDate = new Date(client.next_payment!)
-            const daysUntilDue = Math.floor((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
-            
-            // Check if payment already exists for this due date
-            const paymentExists = await checkPaymentExists(client.id, client.next_payment!)
-            
-            return {
-              id: client.id,
-              client: client.name,
-              clientEmail: client.email,
-              amount: client.payment_type === "monthly" 
-                ? client.monthly_rate || 0
-                : client.payment_type === "weekly" 
-                  ? client.weekly_rate || 0
-                  : 0,
-              dueDate: dueDate.toLocaleDateString(),
-              status: paymentExists ? "paid" : (daysUntilDue < 0 ? "overdue" : "upcoming"),
-              daysUntilDue,
-              paymentDone: paymentExists
-            }
-          })
-
-        // Wait for all payment status checks to complete
-        const upcomingPayments = await Promise.all(upcomingPaymentsPromises)
-        
-        const filteredPayments = upcomingPayments
-          .filter(payment => payment.daysUntilDue <= 7)
-          .sort((a, b) => a.daysUntilDue - b.daysUntilDue)
-        
-        setPayments(filteredPayments)
-      } catch (error) {
-        console.error("Error loading upcoming payments:", error)
-        toast.error("Failed to load payments")
-      } finally {
-        setLoading(false)
-      }
-    }
-
     loadPayments()
+    
+    // Listen for post count updates to refresh the payments
+    const handlePostCountsUpdated = (event: CustomEvent) => {
+      console.log("Post counts updated, refreshing payments:", event.detail)
+      loadPayments()
+    }
+    
+    // Add event listener
+    window.addEventListener('postCountsUpdated', handlePostCountsUpdated as EventListener)
+    
+    // Cleanup
+    return () => {
+      window.removeEventListener('postCountsUpdated', handlePostCountsUpdated as EventListener)
+    }
   }, [])
+  
+  // Effect to load invoice services when the invoice form is opened
+  useEffect(() => {
+    if (showInvoiceForm && selectedPayment) {
+      const loadInvoiceServices = async () => {
+        try {
+          const services = await parseServicesForInvoice()
+          setInvoiceServices(services)
+        } catch (error) {
+          console.error("Error loading invoice services:", error)
+        }
+      }
+      
+      loadInvoiceServices()
+    }
+  }, [showInvoiceForm, selectedPayment])
+
+  const loadPayments = async () => {
+    try {
+      setLoading(true)
+      const today = new Date()
+      const nextWeek = new Date()
+      nextWeek.setDate(today.getDate() + 7)
+
+      // Automatically update tier transitions with rate limiting
+      console.log("Updating tier transitions in upcoming payments...")
+      await ensureAutomaticTierUpdates()
+
+      // Fetch all clients with their next_payment dates
+      const clients = await getClients()
+      
+      // Create array of payment promises with payment status checks
+      const upcomingPaymentsPromises = clients
+        .filter(client => client.next_payment)
+        .map(async (client) => {
+          const dueDate = new Date(client.next_payment!)
+          const daysUntilDue = Math.floor((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+          
+          // Check if payment already exists for this due date
+          const paymentExists = await checkPaymentExists(client.id, client.next_payment!)
+          
+          // For per-post clients, use async calculation to get accurate amount
+          const amount = client.payment_type === 'per-post' 
+            ? await calculateTotalPaymentRateAsync(client)
+            : calculateTotalPaymentRate(client)
+          
+          return {
+            id: client.id,
+            client: client.name,
+            clientEmail: client.email,
+            amount: amount,
+            dueDate: dueDate.toLocaleDateString(),
+            status: paymentExists ? "paid" : (daysUntilDue < 0 ? "overdue" : "upcoming"),
+            daysUntilDue,
+            paymentDone: paymentExists
+          }
+        })
+
+      // Wait for all payment status checks to complete
+      const upcomingPayments = await Promise.all(upcomingPaymentsPromises)
+      
+      const filteredPayments = upcomingPayments
+        .filter(payment => payment.daysUntilDue <= 7)
+        .sort((a, b) => a.daysUntilDue - b.daysUntilDue)
+      
+      setPayments(filteredPayments)
+    } catch (error) {
+      console.error("Error loading upcoming payments:", error)
+      toast.error("Failed to load payments")
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const generateInvoiceNumber = (clientName: string) => {
     const date = new Date()
@@ -113,10 +163,87 @@ export function UpcomingPayments() {
     return `${clientFirstName}${year}${month}${day}${hours}${minutes}`
   }
 
+  const parseServicesForInvoice = async (): Promise<Array<{ name: string; amount: number }>> => {
+    if (!selectedPayment) return []
+    
+    try {
+      // Get client details to check if it's a per-post client
+      const clientDetails = await getClientById(selectedPayment.id)
+      
+      // Special handling for per-post clients
+      if (clientDetails.payment_type === 'per-post' && clientDetails.per_post_rates) {
+        // Get post counts for the client
+        const postCounts = await getPostCountsForClient(clientDetails.id)
+        
+        // Create line items for each platform with post counts
+        const lineItems = postCounts
+          .filter(pc => pc.count > 0) // Only include platforms with posts
+          .map(pc => {
+            const rate = clientDetails.per_post_rates?.[pc.platform] || 0
+            return {
+              name: `${pc.platform} (${pc.count} posts)`,
+              amount: pc.count * rate
+            }
+          })
+        
+        // If we found post counts, return them
+        if (lineItems.length > 0) {
+          return lineItems
+        }
+      } 
+      // For regular clients, use their service list
+      else if (clientDetails.services && Object.keys(clientDetails.services).length > 0) {
+        return Object.entries(clientDetails.services).map(([service, price]) => ({
+          name: service,
+          amount: price as number
+        }))
+      }
+      
+      // If we have the services in a parseable format from the form, use them
+      if (invoiceData.services && invoiceData.services.includes('₹')) {
+        // Parse services that are in format "Service (₹Price), Service2 (₹Price2)"
+        const parsed = invoiceData.services.split(', ').map(serviceStr => {
+          const match = serviceStr.match(/^(.+)\s\(₹(\d+)\)$/)
+          if (match) {
+            return {
+              name: match[1].trim(),
+              amount: parseInt(match[2])
+            }
+          }
+          return null
+        }).filter((item): item is { name: string; amount: number } => item !== null)
+        
+        if (parsed.length > 0) {
+          return parsed
+        }
+      }
+      
+      // Fallback: create a single line item
+      return [{
+        name: invoiceData.services || 'Social Media Services',
+        amount: selectedPayment.amount
+      }]
+    } catch (error) {
+      console.error("Error parsing services for invoice:", error)
+      // Fallback: create a single line item
+      return [{
+        name: invoiceData.services || 'Social Media Services',
+        amount: selectedPayment.amount
+      }]
+    }
+  }
+
   const generatePDF = async () => {
-    if (!invoiceRef.current) return null
+    if (!invoiceRef.current || !selectedPayment) return null
 
     try {
+      // Load services data first
+      const services = await parseServicesForInvoice()
+      setInvoiceServices(services)
+      
+      // Wait for React to update the DOM with the services
+      await new Promise(resolve => setTimeout(resolve, 100))
+      
       // Dynamic import for client-side only
       const html2canvas = (await import('html2canvas')).default
       const jsPDF = (await import('jspdf')).default
@@ -162,6 +289,13 @@ export function UpcomingPayments() {
     setIsGenerating(true)
     
     try {
+      // Load services data first for the client
+      const services = await parseServicesForInvoice()
+      setInvoiceServices(services)
+      
+      // Wait for React to update the DOM with the services
+      await new Promise(resolve => setTimeout(resolve, 100))
+      
       const result = await generatePDF()
       if (!result) {
         toast.error('Failed to generate PDF')
@@ -229,18 +363,35 @@ Note: Please manually attach the downloaded PDF file to this email.`
 
   const handleMarkAsPaid = async (paymentId: string, clientId: string, amount: number, dueDate: string) => {
     try {
-      // Create a new payment record
-      await createPayment({
-        client_id: clientId,
-        amount: amount,
-        payment_date: dueDate,
-        status: "completed",
-        type: "payment",
-        description: "Monthly payment received",
-      })
+      // Get client to check payment type
+      const client = await getClientById(clientId)
+      
+      if (client.payment_type === 'per-post') {
+        // For per-post clients, get current post counts before creating payment
+        const postCountsData = await getPostCountsForClient(clientId)
+        
+        // Create a specialized per-post payment that also resets counts
+        await createPerPostPayment(
+          clientId, 
+          amount, 
+          postCountsData
+        )
+        
+        console.log("Per-post payment created and post counts reset")
+      } else {
+        // Regular client - create standard payment
+        await createPayment({
+          client_id: clientId,
+          amount: amount,
+          payment_date: dueDate,
+          status: "completed",
+          type: "payment",
+          description: "Monthly payment received",
+        })
 
-      // Update client's next payment date to next month
-      await updateClientNextPayment(clientId, dueDate)
+        // Update client's next payment date appropriately
+        await updateClientNextPayment(clientId, dueDate)
+      }
 
       // Update local state to reflect payment
       setPayments(prev => prev.map(p => 
@@ -248,15 +399,76 @@ Note: Please manually attach the downloaded PDF file to this email.`
       ))
 
       toast.success("Payment marked as completed and next payment date updated")
+      
+      // Force reload all payments to ensure everything is up to date
+      loadPayments()
     } catch (error) {
       console.error("Error marking payment as paid:", error)
       toast.error("Failed to mark payment as paid")
     }
   }
 
-  const handleOpenInvoiceForm = (payment: UpcomingPayment) => {
-    setSelectedPayment(payment)
-    setShowInvoiceForm(true)
+  const handleOpenInvoiceForm = async (payment: UpcomingPayment) => {
+    setIsLoadingClientData(true)
+    
+    try {
+      // Fetch full client details
+      const clientDetails = await getClientById(payment.id)
+      
+      // For per-post clients, preload post counts and calculate service items
+      let servicesText = 'Social Media Services';
+      
+      if (clientDetails.payment_type === 'per-post' && clientDetails.per_post_rates) {
+        // Fetch post counts for this client
+        const postCounts = await getPostCountsForClient(clientDetails.id);
+        
+        // Format services with post counts and prices
+        const serviceItems = postCounts
+          .filter(pc => pc.count > 0)
+          .map(pc => {
+            const rate = clientDetails.per_post_rates?.[pc.platform] || 0;
+            return `${pc.platform} (${pc.count} posts) - ₹${pc.count * rate}`;
+          });
+          
+        // If we have services with post counts, use them
+        if (serviceItems.length > 0) {
+          servicesText = serviceItems.join(', ');
+        }
+      } else if (clientDetails.services && Object.keys(clientDetails.services).length > 0) {
+        // Format services with prices for regular clients
+        servicesText = Object.entries(clientDetails.services)
+          .map(([service, price]) => `${service} (₹${price})`)
+          .join(', ');
+      }
+      
+      // Auto-populate form with client data
+      setInvoiceData({
+        personName: clientDetails.name || '',
+        companyName: clientDetails.company || clientDetails.name || '',
+        companyAddress: clientDetails.company_address || '',
+        gst: clientDetails.gst_number || '',
+        phoneNumber: clientDetails.poc_phone || clientDetails.phone || '',
+        services: servicesText
+      });
+      
+      // Also preload the invoice services for immediate display
+      const services = await parseServicesForInvoice();
+      setInvoiceServices(services);
+      
+      toast.success("Client details loaded automatically!")
+      
+      setSelectedPayment(payment)
+      setShowInvoiceForm(true)
+    } catch (error) {
+      console.error("Error fetching client details:", error)
+      toast.error("Failed to fetch client details")
+      
+      // Fallback: open form with empty data
+      setSelectedPayment(payment)
+      setShowInvoiceForm(true)
+    } finally {
+      setIsLoadingClientData(false)
+    }
   }
 
   const formatCurrency = (amount: number) => {
@@ -333,8 +545,13 @@ Note: Please manually attach the downloaded PDF file to this email.`
                             variant="ghost" 
                             className="text-xs p-1 hover:bg-gray-800"
                             onClick={() => handleOpenInvoiceForm(payment)}
+                            disabled={isLoadingClientData}
                           >
-                            <Mail className="h-3 w-3" />
+                            {isLoadingClientData ? (
+                              <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
+                            ) : (
+                              <Mail className="h-3 w-3" />
+                            )}
                           </Button>
                           <Button
                             size="sm"
@@ -388,6 +605,12 @@ Note: Please manually attach the downloaded PDF file to this email.`
               </div>
 
               {/* Form */}
+              <div className="mb-4 p-3 bg-blue-900/20 border border-blue-700/30 rounded-lg">
+                <p className="text-sm text-blue-300">
+                  ℹ️ Client details have been automatically populated from your database. You can edit any field as needed.
+                </p>
+              </div>
+              
               <div className="space-y-4 mb-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -453,13 +676,16 @@ Note: Please manually attach the downloaded PDF file to this email.`
                   <label className="block text-sm font-medium text-gray-300 mb-2">
                     Services Description
                   </label>
-                  <input
-                    type="text"
+                  <textarea
                     value={invoiceData.services}
                     onChange={(e) => setInvoiceData(prev => ({ ...prev, services: e.target.value }))}
+                    rows={3}
                     className="w-full px-4 py-3 bg-black border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Enter service description"
+                    placeholder="Enter services. For separate line items, use format: Service 1 (₹5000), Service 2 (₹3000)"
                   />
+                  <p className="text-xs text-gray-400 mt-1">
+                    💡 Tip: Use "Service Name (₹Amount)" format for individual line items, separated by commas
+                  </p>
                 </div>
               </div>
 
@@ -554,14 +780,17 @@ Note: Please manually attach the downloaded PDF file to this email.`
                         <thead>
                           <tr className="border-b border-gray-300">
                             <th className="text-left py-2 text-sm font-medium text-gray-700 tracking-wide">Item</th>
-                            <th className="text-right py-2 text-sm font-medium text-gray-700 tracking-wide">Total</th>
+                            <th className="text-right py-2 text-sm font-medium text-gray-700 tracking-wide">Amount</th>
                           </tr>
                         </thead>
                         <tbody>
-                          <tr className="border-b border-gray-100">
-                            <td className="py-3 text-sm text-gray-700">{invoiceData.services}</td>
-                            <td className="py-3 text-right text-sm font-medium text-gray-700">{formatCurrency(selectedPayment.amount)}</td>
-                          </tr>
+                          {/* Services list will be populated at PDF generation time */}
+                          {invoiceServices.map((service, index) => (
+                            <tr key={index} className="border-b border-gray-100">
+                              <td className="py-3 text-sm text-gray-700">{service.name}</td>
+                              <td className="py-3 text-right text-sm font-medium text-gray-700">{formatCurrency(service.amount)}</td>
+                            </tr>
+                          ))}
                         </tbody>
                       </table>
                     </div>
@@ -571,7 +800,7 @@ Note: Please manually attach the downloaded PDF file to this email.`
                       <div className="w-64">
                         <div className="flex justify-between py-3 text-lg font-bold border-t border-gray-300">
                           <span className="text-black">Total</span>
-                          <span className="text-black">{formatCurrency(selectedPayment.amount)}</span>
+                          <span className="text-black">{formatCurrency(invoiceServices.reduce((sum, service) => sum + service.amount, 0))}</span>
                         </div>
                       </div>
                     </div>

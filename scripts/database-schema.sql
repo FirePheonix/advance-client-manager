@@ -5,13 +5,20 @@ CREATE TABLE IF NOT EXISTS clients (
   email TEXT UNIQUE NOT NULL,
   phone TEXT,
   company TEXT,
+  company_address TEXT,
+  gst_number TEXT,
+  poc_phone TEXT,
   payment_type TEXT CHECK (payment_type IN ('monthly', 'weekly', 'per-post')) NOT NULL,
   monthly_rate DECIMAL(10,2),
   weekly_rate DECIMAL(10,2),
   next_payment DATE,
-  status TEXT CHECK (status IN ('active', 'inactive', 'pending')) DEFAULT 'active',
-  services TEXT[] DEFAULT '{}',
+  status TEXT CHECK (status IN ('active', 'inactive', 'pending', 'archived')) DEFAULT 'active',
+  services JSONB DEFAULT '{}', -- Service -> price mapping for normal payment clients
   per_post_rates JSONB DEFAULT '{}',
+  tiered_payments JSONB DEFAULT '[]', -- Array of tiered payment objects (each with services)
+  final_monthly_rate DECIMAL(10,2), -- Final rate after tiers complete
+  final_weekly_rate DECIMAL(10,2), -- Final rate after tiers complete  
+  final_services JSONB DEFAULT '{}', -- Final services after tiers complete
   notes TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()

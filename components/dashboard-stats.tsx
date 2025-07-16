@@ -14,6 +14,7 @@ import {
   getDashboardStats,
   getProjectedMRR
 } from "@/lib/database"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 interface DashboardStatsData {
   totalRevenue: number
@@ -156,7 +157,8 @@ export function DashboardStats() {
     }
   }
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: number | undefined | null) => {
+    if (typeof amount !== "number" || isNaN(amount)) return "₹0"
     return new Intl.NumberFormat('en-IN', { 
       style: 'currency', 
       currency: 'INR',
@@ -235,7 +237,8 @@ export function DashboardStats() {
       change: `Net Monthly Recurring Revenue`,
       icon: TrendingUp,
       color: stats.projectedMRR >= 0 ? "text-green-400" : "text-red-400",
-      description: "Expected Client Payments - Expected Team Payments for current month"
+      description: "Expected Client Payments - Expected Team Payments for current month",
+      math: `Sum of all expected client payments for the month minus sum of all expected team payments for the month`
     },
     {
       title: "Net Result",
@@ -243,7 +246,8 @@ export function DashboardStats() {
       change: `${formatPercentage(stats.profitPercentage)} ${getPreviousPeriodText()}`,
       icon: IndianRupee,
       color: stats.netExpenses >= 0 ? "text-green-400" : "text-red-400",
-      description: "Revenue - Total Expenses"
+      description: "Revenue - Total Expenses",
+      math: `Total Revenue - (Other Expenses + Team Salaries)`
     },
     {
       title: "Total Revenue",
@@ -251,7 +255,8 @@ export function DashboardStats() {
       change: `From client payments`,
       icon: TrendingUp,
       color: "text-blue-400",
-      description: "Income from all clients"
+      description: "Income from all clients",
+      math: `Sum of all client payments in the period`
     },
     {
       title: "Total Expenses",
@@ -259,7 +264,8 @@ export function DashboardStats() {
       change: `Other: ${formatCurrency(stats.totalOtherExpenses)} | Salaries: ${formatCurrency(stats.totalTeamSalaries)}`,
       icon: AlertCircle,
       color: "text-orange-400",
-      description: "Other expenses + Team salaries"
+      description: "Other expenses + Team salaries",
+      math: `Other Expenses + Team Salaries`
     },
     {
       title: "Pending Payments",
@@ -267,7 +273,8 @@ export function DashboardStats() {
       change: `Clients: ${formatCurrency(stats.pendingClientPayments)} | Team: ${formatCurrency(stats.pendingTeamPayments)}`,
       icon: Calendar,
       color: "text-yellow-400",
-      description: "Awaiting payments"
+      description: "Awaiting payments",
+      math: `Clients: sum of all pending client payments\nTeam: sum of all pending team payments`
     },
   ]
 
@@ -339,20 +346,29 @@ export function DashboardStats() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
-        {statsData.map((stat) => (
-          <Card key={stat.title} className="bg-black border-gray-800">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-300">{stat.title}</CardTitle>
-              <stat.icon className={`h-4 w-4 ${stat.color}`} />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-white">{stat.value}</div>
-              <p className="text-xs text-gray-400 mt-1" title={stat.description}>
-                {stat.change}
-              </p>
-            </CardContent>
-          </Card>
-        ))}
+        <TooltipProvider>
+          {statsData.map((stat) => (
+            <Card key={stat.title} className="bg-black border-gray-800">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-gray-300">{stat.title}</CardTitle>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <stat.icon className={`h-4 w-4 ${stat.color}`} />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <span className="whitespace-pre-line">{stat.math}</span>
+                  </TooltipContent>
+                </Tooltip>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-white">{stat.value}</div>
+                <p className="text-xs text-gray-400 mt-1" title={stat.description}>
+                  {stat.change}
+                </p>
+              </CardContent>
+            </Card>
+          ))}
+        </TooltipProvider>
       </div>
     </div>
   )

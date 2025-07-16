@@ -740,8 +740,6 @@ export async function getUpcomingPaymentsPending() {
 }
 
 export async function getUpcomingTeamPaymentsPending() {
-  const today = new Date()
-  
   // Get all active team members
   const { data: teamMembers, error } = await supabase
     .from("team_members")
@@ -751,46 +749,35 @@ export async function getUpcomingTeamPaymentsPending() {
   if (error) throw error
 
   const pendingPayments = []
+  const today = new Date()
 
   for (const member of teamMembers || []) {
     // Parse payment_date and calculate next payment
     const paymentDate = new Date(member.payment_date)
     const paymentDay = paymentDate.getDate()
-    
-    // Create a date for this month's payment
+    // This month's payment date
     const thisMonthPayment = new Date(today.getFullYear(), today.getMonth(), paymentDay)
-    
     // If today is past this month's payment date, look at next month
     const nextPaymentDate = today > thisMonthPayment 
       ? new Date(today.getFullYear(), today.getMonth() + 1, paymentDay)
       : thisMonthPayment
-
-    // Check if payment is due within next 7 days
-    const daysUntilDue = Math.ceil(
-      (nextPaymentDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
-    )
-
-    if (daysUntilDue <= 7 && daysUntilDue >= 0) {
-      // Check if this payment has already been made
-      const monthStart = new Date(nextPaymentDate.getFullYear(), nextPaymentDate.getMonth(), 1)
-      const monthEnd = new Date(nextPaymentDate.getFullYear(), nextPaymentDate.getMonth() + 1, 0)
-      
-      const { data: expenses } = await supabase
-        .from("other_expenses")
-        .select("*")
-        .like("title", `Salary - ${member.name}`)
-        .gte("date", monthStart.toISOString().split("T")[0])
-        .lte("date", monthEnd.toISOString().split("T")[0])
-
-      // If no salary payment found for this month, add to pending
-      if (!expenses || expenses.length === 0) {
-        pendingPayments.push({
-          member_id: member.id,
-          member_name: member.name,
-          amount: member.salary,
-          due_date: nextPaymentDate.toISOString().split("T")[0]
-        })
-      }
+    // Check if this payment has already been made for the current month
+    const monthStart = new Date(nextPaymentDate.getFullYear(), nextPaymentDate.getMonth(), 1)
+    const monthEnd = new Date(nextPaymentDate.getFullYear(), nextPaymentDate.getMonth() + 1, 0)
+    const { data: expenses } = await supabase
+      .from("other_expenses")
+      .select("*")
+      .like("title", `Salary - ${member.name}`)
+      .gte("date", monthStart.toISOString().split("T")[0])
+      .lte("date", monthEnd.toISOString().split("T")[0])
+    // If no salary payment found for this month, add to pending
+    if (!expenses || expenses.length === 0) {
+      pendingPayments.push({
+        member_id: member.id,
+        member_name: member.name,
+        amount: member.salary,
+        due_date: nextPaymentDate.toISOString().split("T")[0]
+      })
     }
   }
 
@@ -1089,7 +1076,17 @@ export async function getProjectedMRR(): Promise<number> {
     }
   }
 
-  return Math.round(projectedMRR)
+  // Subtract total team salaries to get net projected MRR
+  const { data: teamMembers, error: teamError } = await supabase
+    .from("team_members")
+    .select("salary")
+    .eq("status", "active")
+
+  if (teamError) throw teamError
+
+  const totalTeamSalaries = teamMembers?.reduce((sum, member) => sum + Number(member.salary), 0) || 0
+
+  return Math.round(projectedMRR - totalTeamSalaries)
 }
 
 // Function to calculate expected monthly revenue for per-post clients (for Projected MRR)

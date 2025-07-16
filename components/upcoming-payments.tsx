@@ -39,6 +39,17 @@ interface InvoiceData {
   gst: string
   phoneNumber: string
   services: string
+  fromName: string
+  fromAddress: string
+  fromPhone: string
+  fromEmail: string
+  bankAccountName: string
+  bankAccountNumber: string
+  bankIFSC: string
+  upiId: string
+  upiPhone: string
+  contactEmail: string
+  dueDate: string
 }
 
 export function UpcomingPayments() {
@@ -53,7 +64,18 @@ export function UpcomingPayments() {
     companyAddress: '',
     gst: '',
     phoneNumber: '',
-    services: 'Social Media Services'
+    services: 'Social Media Services',
+    fromName: 'Janavi Sawadia',
+    fromAddress: 'House Number 3021, Sector 51 D\nChandigarh',
+    fromPhone: '9915474100',
+    fromEmail: 'sawadiajanavi@gmail.com',
+    bankAccountName: 'HDFCJanavi',
+    bankAccountNumber: 'FOUEWND134',
+    bankIFSC: '1329',
+    upiId: 'ewdwniowe@ptsbi',
+    upiPhone: '9915474100',
+    contactEmail: 'sawadiajanavi@gmail.com',
+    dueDate: '',
   })
   const [isGenerating, setIsGenerating] = useState(false)
   const [isLoadingClientData, setIsLoadingClientData] = useState(false)
@@ -442,14 +464,16 @@ Note: Please manually attach the downloaded PDF file to this email.`
       }
       
       // Auto-populate form with client data
-      setInvoiceData({
+      setInvoiceData(prev => ({
+        ...prev,
         personName: clientDetails.name || '',
         companyName: clientDetails.company || clientDetails.name || '',
         companyAddress: clientDetails.company_address || '',
         gst: clientDetails.gst_number || '',
         phoneNumber: clientDetails.poc_phone || clientDetails.phone || '',
-        services: servicesText
-      });
+        services: servicesText,
+        dueDate: payment.dueDate || prev.dueDate,
+      }))
       
       // Also preload the invoice services for immediate display
       const services = await parseServicesForInvoice();
@@ -687,6 +711,121 @@ Note: Please manually attach the downloaded PDF file to this email.`
                     💡 Tip: Use "Service Name (₹Amount)" format for individual line items, separated by commas
                   </p>
                 </div>
+                {/* FROM (Your Business Info) */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">From Name *</label>
+                  <input
+                    type="text"
+                    value={invoiceData.fromName}
+                    onChange={e => setInvoiceData(prev => ({ ...prev, fromName: e.target.value }))}
+                    className="w-full px-4 py-3 bg-black border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Enter your name"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">From Address *</label>
+                  <textarea
+                    value={invoiceData.fromAddress}
+                    onChange={e => setInvoiceData(prev => ({ ...prev, fromAddress: e.target.value }))}
+                    rows={2}
+                    className="w-full px-4 py-3 bg-black border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Enter your address"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">From Phone *</label>
+                  <input
+                    type="text"
+                    value={invoiceData.fromPhone}
+                    onChange={e => setInvoiceData(prev => ({ ...prev, fromPhone: e.target.value }))}
+                    className="w-full px-4 py-3 bg-black border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Enter your phone number"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">From Email *</label>
+                  <input
+                    type="email"
+                    value={invoiceData.fromEmail}
+                    onChange={e => setInvoiceData(prev => ({ ...prev, fromEmail: e.target.value }))}
+                    className="w-full px-4 py-3 bg-black border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Enter your email"
+                  />
+                </div>
+                {/* Bank Transfer */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Bank Account Name *</label>
+                  <input
+                    type="text"
+                    value={invoiceData.bankAccountName}
+                    onChange={e => setInvoiceData(prev => ({ ...prev, bankAccountName: e.target.value }))}
+                    className="w-full px-4 py-3 bg-black border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Enter account name"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Bank Account Number *</label>
+                  <input
+                    type="text"
+                    value={invoiceData.bankAccountNumber}
+                    onChange={e => setInvoiceData(prev => ({ ...prev, bankAccountNumber: e.target.value }))}
+                    className="w-full px-4 py-3 bg-black border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Enter account number"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Bank IFSC *</label>
+                  <input
+                    type="text"
+                    value={invoiceData.bankIFSC}
+                    onChange={e => setInvoiceData(prev => ({ ...prev, bankIFSC: e.target.value }))}
+                    className="w-full px-4 py-3 bg-black border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Enter IFSC code"
+                  />
+                </div>
+                {/* UPI Payment */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">UPI ID *</label>
+                  <input
+                    type="text"
+                    value={invoiceData.upiId}
+                    onChange={e => setInvoiceData(prev => ({ ...prev, upiId: e.target.value }))}
+                    className="w-full px-4 py-3 bg-black border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Enter UPI ID"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">UPI Phone *</label>
+                  <input
+                    type="text"
+                    value={invoiceData.upiPhone}
+                    onChange={e => setInvoiceData(prev => ({ ...prev, upiPhone: e.target.value }))}
+                    className="w-full px-4 py-3 bg-black border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Enter UPI phone number"
+                  />
+                </div>
+                {/* Contact Email */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Contact Email *</label>
+                  <input
+                    type="email"
+                    value={invoiceData.contactEmail}
+                    onChange={e => setInvoiceData(prev => ({ ...prev, contactEmail: e.target.value }))}
+                    className="w-full px-4 py-3 bg-black border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Enter contact email"
+                  />
+                </div>
+                {/* Due Date */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Due Date *</label>
+                  <input
+                    type="date"
+                    value={invoiceData.dueDate}
+                    onChange={e => setInvoiceData(prev => ({ ...prev, dueDate: e.target.value }))}
+                    className="w-full px-4 py-3 bg-black border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Enter due date"
+                  />
+                </div>
               </div>
 
               <div className="flex justify-end space-x-4 mb-6">
@@ -754,10 +893,10 @@ Note: Please manually attach the downloaded PDF file to this email.`
                       <div>
                         <h3 className="text-sm font-semibold text-black mb-2 tracking-wide">FROM:</h3>
                         <div className="text-sm text-gray-700 leading-relaxed">
-                          <p className="font-medium text-black">Janavi Sawadia</p>
-                          <p>House Number 3021, Sector 51 D</p>
-                          <p>Chandigarh</p>
-                          <p>9915474100</p>
+                          <p className="font-medium text-black">{invoiceData.fromName}</p>
+                          {invoiceData.fromAddress.split('\n').map((line, idx) => <p key={idx}>{line}</p>)}
+                          <p>{invoiceData.fromPhone}</p>
+                          <p>{invoiceData.fromEmail}</p>
                         </div>
                       </div>
 
@@ -815,29 +954,29 @@ Note: Please manually attach the downloaded PDF file to this email.`
                       <div>
                         <h3 className="text-sm font-semibold text-black mb-2 tracking-wide">PAYMENT INFORMATION</h3>
                         <div className="text-sm text-gray-700 leading-relaxed mb-3">
-                          <p>Due Date: {selectedPayment.dueDate}</p>
-                          <p>Contact: sawadiajanavi@gmail.com</p>
+                          <p>Due Date: {invoiceData.dueDate || selectedPayment.dueDate}</p>
+                          <p>Contact: {invoiceData.contactEmail}</p>
                         </div>
                         
                         <div className="mb-3">
                           <h4 className="text-sm font-semibold text-black mb-1">Bank Transfer:</h4>
                           <div className="text-sm text-gray-700 leading-relaxed">
-                            <p>Account Name: HDFCJanavi</p>
-                            <p>Account Number: FOUEWND134</p>
-                            <p>IFSC Code: 1329</p>
+                            <p>Account Name: {invoiceData.bankAccountName}</p>
+                            <p>Account Number: {invoiceData.bankAccountNumber}</p>
+                            <p>IFSC Code: {invoiceData.bankIFSC}</p>
                           </div>
                         </div>
 
                         <div className="mb-3">
                           <h4 className="text-sm font-semibold text-black mb-1">UPI Payment:</h4>
                           <div className="text-sm text-gray-700 leading-relaxed">
-                            <p>UPI ID: ewdwniowe@ptsbi</p>
-                            <p>Phone: 9915474100</p>
+                            <p>UPI ID: {invoiceData.upiId}</p>
+                            <p>Phone: {invoiceData.upiPhone}</p>
                           </div>
                         </div>
                       </div>
                       <div className="text-right">
-                        <h3 className="text-lg font-light text-black mb-1">Janavi Sawadia</h3>
+                        <h3 className="text-lg font-light text-black mb-1">{invoiceData.fromName}</h3>
                         <p className="text-sm text-gray-700 mb-4">Social Media Services</p>
                       
                       

@@ -50,6 +50,27 @@ interface InvoiceData {
   upiPhone: string
   contactEmail: string
   dueDate: string
+  // New editable fields for everything
+  invoiceNumber: string
+  invoiceDate: string
+  businessTitle: string
+  businessSubtitle: string
+  thankYouMessage: string
+  paymentInstructions: string
+  termsAndConditions: string
+  footerText: string
+  currencySymbol: string
+  taxRate: string
+  discountAmount: string
+  discountReason: string
+  notes: string
+  logoUrl: string
+  signatureUrl: string
+  customField1: string
+  customField2: string
+  customField3: string
+  customField4: string
+  customField5: string
 }
 
 export function UpcomingPayments() {
@@ -76,6 +97,27 @@ export function UpcomingPayments() {
     upiPhone: '9915474100',
     contactEmail: 'sawadiajanavi@gmail.com',
     dueDate: '',
+    // New editable fields for everything
+    invoiceNumber: '',
+    invoiceDate: '',
+    businessTitle: '',
+    businessSubtitle: '',
+    thankYouMessage: '',
+    paymentInstructions: '',
+    termsAndConditions: '',
+    footerText: '',
+    currencySymbol: '₹',
+    taxRate: '0',
+    discountAmount: '0',
+    discountReason: '',
+    notes: '',
+    logoUrl: '',
+    signatureUrl: '',
+    customField1: '',
+    customField2: '',
+    customField3: '',
+    customField4: '',
+    customField5: '',
   })
   const [isGenerating, setIsGenerating] = useState(false)
   const [isLoadingClientData, setIsLoadingClientData] = useState(false)
@@ -303,8 +345,8 @@ export function UpcomingPayments() {
   }
 
   const handleGenerateAndSend = async () => {
-    if (!selectedPayment || !invoiceData.personName || !invoiceData.companyName || !invoiceData.companyAddress || !invoiceData.gst || !invoiceData.phoneNumber) {
-      toast.error('Please fill in all required fields')
+    if (!selectedPayment) {
+      toast.error('No payment selected to generate invoice.')
       return
     }
 
@@ -366,13 +408,44 @@ Note: Please manually attach the downloaded PDF file to this email.`
       // Reset form
       setShowInvoiceForm(false)
       setSelectedPayment(null)
-      setInvoiceData({ 
+      setInvoiceData({
         personName: '',
-        companyName: '', 
-        companyAddress: '', 
-        gst: '', 
+        companyName: '',
+        companyAddress: '',
+        gst: '',
         phoneNumber: '',
-        services: 'Social Media Services' 
+        services: 'Social Media Services',
+        fromName: 'Janavi Sawadia',
+        fromAddress: 'House Number 3021, Sector 51 D\nChandigarh',
+        fromPhone: '9915474100',
+        fromEmail: 'sawadiajanavi@gmail.com',
+        bankAccountName: 'HDFCJanavi',
+        bankAccountNumber: 'FOUEWND134',
+        bankIFSC: '1329',
+        upiId: 'ewdwniowe@ptsbi',
+        upiPhone: '9915474100',
+        contactEmail: 'sawadiajanavi@gmail.com',
+        dueDate: '',
+        invoiceNumber: '',
+        invoiceDate: '',
+        businessTitle: '',
+        businessSubtitle: '',
+        thankYouMessage: '',
+        paymentInstructions: '',
+        termsAndConditions: '',
+        footerText: '',
+        currencySymbol: '₹',
+        taxRate: '0',
+        discountAmount: '0',
+        discountReason: '',
+        notes: '',
+        logoUrl: '',
+        signatureUrl: '',
+        customField1: '',
+        customField2: '',
+        customField3: '',
+        customField4: '',
+        customField5: '',
       })
       
     } catch (error) {
@@ -496,7 +569,7 @@ Note: Please manually attach the downloaded PDF file to this email.`
   }
 
   const formatCurrency = (amount: number) => {
-    return `₹${amount.toFixed(0)}`
+    return `${invoiceData.currencySymbol || '₹'}${amount.toFixed(0)}`
   }
 
   if (loading) {
@@ -614,13 +687,44 @@ Note: Please manually attach the downloaded PDF file to this email.`
                   onClick={() => {
                     setShowInvoiceForm(false)
                     setSelectedPayment(null)
-                    setInvoiceData({ 
+                    setInvoiceData({
                       personName: '',
-                      companyName: '', 
-                      companyAddress: '', 
-                      gst: '', 
+                      companyName: '',
+                      companyAddress: '',
+                      gst: '',
                       phoneNumber: '',
-                      services: 'Social Media Services' 
+                      services: 'Social Media Services',
+                      fromName: 'Janavi Sawadia',
+                      fromAddress: 'House Number 3021, Sector 51 D\nChandigarh',
+                      fromPhone: '9915474100',
+                      fromEmail: 'sawadiajanavi@gmail.com',
+                      bankAccountName: 'HDFCJanavi',
+                      bankAccountNumber: 'FOUEWND134',
+                      bankIFSC: '1329',
+                      upiId: 'ewdwniowe@ptsbi',
+                      upiPhone: '9915474100',
+                      contactEmail: 'sawadiajanavi@gmail.com',
+                      dueDate: '',
+                      invoiceNumber: '',
+                      invoiceDate: '',
+                      businessTitle: '',
+                      businessSubtitle: '',
+                      thankYouMessage: '',
+                      paymentInstructions: '',
+                      termsAndConditions: '',
+                      footerText: '',
+                      currencySymbol: '₹',
+                      taxRate: '0',
+                      discountAmount: '0',
+                      discountReason: '',
+                      notes: '',
+                      logoUrl: '',
+                      signatureUrl: '',
+                      customField1: '',
+                      customField2: '',
+                      customField3: '',
+                      customField4: '',
+                      customField5: '',
                     })
                   }}
                 >
@@ -638,7 +742,7 @@ Note: Please manually attach the downloaded PDF file to this email.`
               <div className="space-y-4 mb-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Person's Name *
+                    Person's Name
                   </label>
                   <input
                     type="text"
@@ -650,7 +754,7 @@ Note: Please manually attach the downloaded PDF file to this email.`
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Company Name *
+                    Company Name
                   </label>
                   <input
                     type="text"
@@ -662,7 +766,7 @@ Note: Please manually attach the downloaded PDF file to this email.`
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Company Address *
+                    Company Address
                   </label>
                   <textarea
                     value={invoiceData.companyAddress}
@@ -674,7 +778,7 @@ Note: Please manually attach the downloaded PDF file to this email.`
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    GST Number *
+                    GST Number
                   </label>
                   <input
                     type="text"
@@ -686,7 +790,7 @@ Note: Please manually attach the downloaded PDF file to this email.`
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Phone Number *
+                    Phone Number
                   </label>
                   <input
                     type="tel"
@@ -713,7 +817,7 @@ Note: Please manually attach the downloaded PDF file to this email.`
                 </div>
                 {/* FROM (Your Business Info) */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">From Name *</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">From Name</label>
                   <input
                     type="text"
                     value={invoiceData.fromName}
@@ -723,7 +827,7 @@ Note: Please manually attach the downloaded PDF file to this email.`
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">From Address *</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">From Address</label>
                   <textarea
                     value={invoiceData.fromAddress}
                     onChange={e => setInvoiceData(prev => ({ ...prev, fromAddress: e.target.value }))}
@@ -733,7 +837,7 @@ Note: Please manually attach the downloaded PDF file to this email.`
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">From Phone *</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">From Phone</label>
                   <input
                     type="text"
                     value={invoiceData.fromPhone}
@@ -743,7 +847,7 @@ Note: Please manually attach the downloaded PDF file to this email.`
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">From Email *</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">From Email</label>
                   <input
                     type="email"
                     value={invoiceData.fromEmail}
@@ -754,7 +858,7 @@ Note: Please manually attach the downloaded PDF file to this email.`
                 </div>
                 {/* Bank Transfer */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Bank Account Name *</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Bank Account Name</label>
                   <input
                     type="text"
                     value={invoiceData.bankAccountName}
@@ -764,7 +868,7 @@ Note: Please manually attach the downloaded PDF file to this email.`
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Bank Account Number *</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Bank Account Number</label>
                   <input
                     type="text"
                     value={invoiceData.bankAccountNumber}
@@ -774,7 +878,7 @@ Note: Please manually attach the downloaded PDF file to this email.`
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Bank IFSC *</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Bank IFSC</label>
                   <input
                     type="text"
                     value={invoiceData.bankIFSC}
@@ -785,7 +889,7 @@ Note: Please manually attach the downloaded PDF file to this email.`
                 </div>
                 {/* UPI Payment */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">UPI ID *</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">UPI ID</label>
                   <input
                     type="text"
                     value={invoiceData.upiId}
@@ -795,7 +899,7 @@ Note: Please manually attach the downloaded PDF file to this email.`
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">UPI Phone *</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">UPI Phone</label>
                   <input
                     type="text"
                     value={invoiceData.upiPhone}
@@ -806,7 +910,7 @@ Note: Please manually attach the downloaded PDF file to this email.`
                 </div>
                 {/* Contact Email */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Contact Email *</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Contact Email</label>
                   <input
                     type="email"
                     value={invoiceData.contactEmail}
@@ -817,13 +921,221 @@ Note: Please manually attach the downloaded PDF file to this email.`
                 </div>
                 {/* Due Date */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Due Date *</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Due Date</label>
                   <input
                     type="date"
                     value={invoiceData.dueDate}
                     onChange={e => setInvoiceData(prev => ({ ...prev, dueDate: e.target.value }))}
                     className="w-full px-4 py-3 bg-black border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="Enter due date"
+                  />
+                </div>
+
+                {/* Invoice Details */}
+                <div className="border-t border-gray-700 pt-4 mt-4">
+                  <h3 className="text-lg font-semibold text-white mb-4">Invoice Details</h3>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Invoice Number</label>
+                  <input
+                    type="text"
+                    value={invoiceData.invoiceNumber}
+                    onChange={e => setInvoiceData(prev => ({ ...prev, invoiceNumber: e.target.value }))}
+                    className="w-full px-4 py-3 bg-black border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Auto-generated or custom invoice number"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Invoice Date</label>
+                  <input
+                    type="date"
+                    value={invoiceData.invoiceDate}
+                    onChange={e => setInvoiceData(prev => ({ ...prev, invoiceDate: e.target.value }))}
+                    className="w-full px-4 py-3 bg-black border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Invoice date"
+                  />
+                </div>
+
+                {/* Business Branding */}
+                <div className="border-t border-gray-700 pt-4 mt-4">
+                  <h3 className="text-lg font-semibold text-white mb-4">Business Branding</h3>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Business Title</label>
+                  <input
+                    type="text"
+                    value={invoiceData.businessTitle}
+                    onChange={e => setInvoiceData(prev => ({ ...prev, businessTitle: e.target.value }))}
+                    className="w-full px-4 py-3 bg-black border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Your business name/title"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Business Subtitle</label>
+                  <input
+                    type="text"
+                    value={invoiceData.businessSubtitle}
+                    onChange={e => setInvoiceData(prev => ({ ...prev, businessSubtitle: e.target.value }))}
+                    className="w-full px-4 py-3 bg-black border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Business tagline or subtitle"
+                  />
+                </div>
+
+                {/* Payment & Financial Details */}
+                <div className="border-t border-gray-700 pt-4 mt-4">
+                  <h3 className="text-lg font-semibold text-white mb-4">Payment & Financial Details</h3>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Currency Symbol</label>
+                  <input
+                    type="text"
+                    value={invoiceData.currencySymbol}
+                    onChange={e => setInvoiceData(prev => ({ ...prev, currencySymbol: e.target.value }))}
+                    className="w-full px-4 py-3 bg-black border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="₹"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Tax Rate (%)</label>
+                  <input
+                    type="number"
+                    value={invoiceData.taxRate}
+                    onChange={e => setInvoiceData(prev => ({ ...prev, taxRate: e.target.value }))}
+                    className="w-full px-4 py-3 bg-black border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="0"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Discount Amount</label>
+                  <input
+                    type="number"
+                    value={invoiceData.discountAmount}
+                    onChange={e => setInvoiceData(prev => ({ ...prev, discountAmount: e.target.value }))}
+                    className="w-full px-4 py-3 bg-black border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="0"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Discount Reason</label>
+                  <input
+                    type="text"
+                    value={invoiceData.discountReason}
+                    onChange={e => setInvoiceData(prev => ({ ...prev, discountReason: e.target.value }))}
+                    className="w-full px-4 py-3 bg-black border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Reason for discount"
+                  />
+                </div>
+
+                {/* Messages & Content */}
+                <div className="border-t border-gray-700 pt-4 mt-4">
+                  <h3 className="text-lg font-semibold text-white mb-4">Messages & Content</h3>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Thank You Message</label>
+                  <textarea
+                    value={invoiceData.thankYouMessage}
+                    onChange={e => setInvoiceData(prev => ({ ...prev, thankYouMessage: e.target.value }))}
+                    rows={2}
+                    className="w-full px-4 py-3 bg-black border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Thank you for your business!"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Payment Instructions</label>
+                  <textarea
+                    value={invoiceData.paymentInstructions}
+                    onChange={e => setInvoiceData(prev => ({ ...prev, paymentInstructions: e.target.value }))}
+                    rows={3}
+                    className="w-full px-4 py-3 bg-black border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Additional payment instructions"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Terms & Conditions</label>
+                  <textarea
+                    value={invoiceData.termsAndConditions}
+                    onChange={e => setInvoiceData(prev => ({ ...prev, termsAndConditions: e.target.value }))}
+                    rows={3}
+                    className="w-full px-4 py-3 bg-black border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Terms and conditions"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Notes</label>
+                  <textarea
+                    value={invoiceData.notes}
+                    onChange={e => setInvoiceData(prev => ({ ...prev, notes: e.target.value }))}
+                    rows={2}
+                    className="w-full px-4 py-3 bg-black border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Additional notes"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Footer Text</label>
+                  <textarea
+                    value={invoiceData.footerText}
+                    onChange={e => setInvoiceData(prev => ({ ...prev, footerText: e.target.value }))}
+                    rows={2}
+                    className="w-full px-4 py-3 bg-black border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Footer text"
+                  />
+                </div>
+
+                {/* Custom Fields */}
+                <div className="border-t border-gray-700 pt-4 mt-4">
+                  <h3 className="text-lg font-semibold text-white mb-4">Custom Fields</h3>
+                </div>
+                
+                {[1, 2, 3, 4, 5].map((num) => (
+                  <div key={num}>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">Custom Field {num}</label>
+                    <input
+                      type="text"
+                      value={invoiceData[`customField${num}` as keyof InvoiceData] as string}
+                      onChange={e => setInvoiceData(prev => ({ ...prev, [`customField${num}`]: e.target.value }))}
+                      className="w-full px-4 py-3 bg-black border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder={`Custom field ${num}`}
+                    />
+                  </div>
+                ))}
+
+                {/* Media URLs */}
+                <div className="border-t border-gray-700 pt-4 mt-4">
+                  <h3 className="text-lg font-semibold text-white mb-4">Media</h3>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Logo URL</label>
+                  <input
+                    type="url"
+                    value={invoiceData.logoUrl}
+                    onChange={e => setInvoiceData(prev => ({ ...prev, logoUrl: e.target.value }))}
+                    className="w-full px-4 py-3 bg-black border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="https://example.com/logo.png"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Signature URL</label>
+                  <input
+                    type="url"
+                    value={invoiceData.signatureUrl}
+                    onChange={e => setInvoiceData(prev => ({ ...prev, signatureUrl: e.target.value }))}
+                    className="w-full px-4 py-3 bg-black border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="https://example.com/signature.png"
                   />
                 </div>
               </div>
@@ -835,13 +1147,44 @@ Note: Please manually attach the downloaded PDF file to this email.`
                   onClick={() => {
                     setShowInvoiceForm(false)
                     setSelectedPayment(null)
-                    setInvoiceData({ 
+                    setInvoiceData({
                       personName: '',
-                      companyName: '', 
-                      companyAddress: '', 
-                      gst: '', 
+                      companyName: '',
+                      companyAddress: '',
+                      gst: '',
                       phoneNumber: '',
-                      services: 'Social Media Services' 
+                      services: 'Social Media Services',
+                      fromName: 'Janavi Sawadia',
+                      fromAddress: 'House Number 3021, Sector 51 D\nChandigarh',
+                      fromPhone: '9915474100',
+                      fromEmail: 'sawadiajanavi@gmail.com',
+                      bankAccountName: 'HDFCJanavi',
+                      bankAccountNumber: 'FOUEWND134',
+                      bankIFSC: '1329',
+                      upiId: 'ewdwniowe@ptsbi',
+                      upiPhone: '9915474100',
+                      contactEmail: 'sawadiajanavi@gmail.com',
+                      dueDate: '',
+                      invoiceNumber: '',
+                      invoiceDate: '',
+                      businessTitle: '',
+                      businessSubtitle: '',
+                      thankYouMessage: '',
+                      paymentInstructions: '',
+                      termsAndConditions: '',
+                      footerText: '',
+                      currencySymbol: '₹',
+                      taxRate: '0',
+                      discountAmount: '0',
+                      discountReason: '',
+                      notes: '',
+                      logoUrl: '',
+                      signatureUrl: '',
+                      customField1: '',
+                      customField2: '',
+                      customField3: '',
+                      customField4: '',
+                      customField5: '',
                     })
                   }}
                 >
@@ -877,12 +1220,23 @@ Note: Please manually attach the downloaded PDF file to this email.`
                   >
                     {/* Header */}
                     <div className="flex justify-between items-start mb-8">
-                      <div className="text-5xl font-bold text-black">&</div>
+                      <div className="text-5xl font-bold text-black">
+                        {invoiceData.logoUrl ? (
+                          <img src={invoiceData.logoUrl} alt="Logo" className="h-12 w-auto" />
+                        ) : (
+                          "&"
+                        )}
+                      </div>
                       <div className="text-right">
-                        <h1 className="text-3xl font-light text-black tracking-wider mb-4">INVOICE</h1>
+                        <h1 className="text-3xl font-light text-black tracking-wider mb-4">
+                          {invoiceData.businessTitle || "INVOICE"}
+                        </h1>
+                        {invoiceData.businessSubtitle && (
+                          <p className="text-sm text-gray-600 mb-2">{invoiceData.businessSubtitle}</p>
+                        )}
                         <div className="text-sm text-gray-700">
-                          <p className="mb-1">Invoice No. {generateInvoiceNumber(selectedPayment.client)}</p>
-                          <p>{new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                          <p className="mb-1">Invoice No. {invoiceData.invoiceNumber || generateInvoiceNumber(selectedPayment.client)}</p>
+                          <p>{invoiceData.invoiceDate ? new Date(invoiceData.invoiceDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
                         </div>
                       </div>
                     </div>
@@ -937,17 +1291,79 @@ Note: Please manually attach the downloaded PDF file to this email.`
                     {/* Total */}
                     <div className="flex justify-end mb-6">
                       <div className="w-64">
+                        {invoiceData.discountAmount && Number(invoiceData.discountAmount) > 0 && (
+                          <div className="flex justify-between py-1 text-sm text-gray-600">
+                            <span>Subtotal</span>
+                            <span>{formatCurrency(invoiceServices.reduce((sum, service) => sum + service.amount, 0))}</span>
+                          </div>
+                        )}
+                        {invoiceData.discountAmount && Number(invoiceData.discountAmount) > 0 && (
+                          <div className="flex justify-between py-1 text-sm text-gray-600">
+                            <span>Discount ({invoiceData.discountReason || 'Discount'})</span>
+                            <span>-{formatCurrency(Number(invoiceData.discountAmount))}</span>
+                          </div>
+                        )}
+                        {invoiceData.taxRate && Number(invoiceData.taxRate) > 0 && (
+                          <div className="flex justify-between py-1 text-sm text-gray-600">
+                            <span>Tax ({invoiceData.taxRate}%)</span>
+                            <span>{formatCurrency((invoiceServices.reduce((sum, service) => sum + service.amount, 0) - Number(invoiceData.discountAmount || 0)) * Number(invoiceData.taxRate) / 100)}</span>
+                          </div>
+                        )}
                         <div className="flex justify-between py-3 text-lg font-bold border-t border-gray-300">
                           <span className="text-black">Total</span>
-                          <span className="text-black">{formatCurrency(invoiceServices.reduce((sum, service) => sum + service.amount, 0))}</span>
+                          <span className="text-black">
+                            {formatCurrency(
+                              invoiceServices.reduce((sum, service) => sum + service.amount, 0) - 
+                              Number(invoiceData.discountAmount || 0) + 
+                              ((invoiceServices.reduce((sum, service) => sum + service.amount, 0) - Number(invoiceData.discountAmount || 0)) * Number(invoiceData.taxRate || 0) / 100)
+                            )}
+                          </span>
                         </div>
                       </div>
                     </div>
 
                     {/* Thank you */}
                     <div className="mb-8">
-                      <h2 className="text-xl font-light text-gray-800">Thank you!</h2>
+                      <h2 className="text-xl font-light text-gray-800">
+                        {invoiceData.thankYouMessage || "Thank you!"}
+                      </h2>
+                      {invoiceData.notes && (
+                        <p className="text-sm text-gray-600 mt-2">{invoiceData.notes}</p>
+                      )}
                     </div>
+
+                    {/* Custom Fields */}
+                    {(invoiceData.customField1 || invoiceData.customField2 || invoiceData.customField3 || invoiceData.customField4 || invoiceData.customField5) && (
+                      <div className="mb-6">
+                        <div className="grid grid-cols-2 gap-4 text-sm text-gray-700">
+                          {invoiceData.customField1 && (
+                            <div>
+                              <span className="font-medium">{invoiceData.customField1}</span>
+                            </div>
+                          )}
+                          {invoiceData.customField2 && (
+                            <div>
+                              <span className="font-medium">{invoiceData.customField2}</span>
+                            </div>
+                          )}
+                          {invoiceData.customField3 && (
+                            <div>
+                              <span className="font-medium">{invoiceData.customField3}</span>
+                            </div>
+                          )}
+                          {invoiceData.customField4 && (
+                            <div>
+                              <span className="font-medium">{invoiceData.customField4}</span>
+                            </div>
+                          )}
+                          {invoiceData.customField5 && (
+                            <div>
+                              <span className="font-medium">{invoiceData.customField5}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
 
                     {/* Payment Information */}
                     <div className="grid grid-cols-2 gap-6">
@@ -956,6 +1372,9 @@ Note: Please manually attach the downloaded PDF file to this email.`
                         <div className="text-sm text-gray-700 leading-relaxed mb-3">
                           <p>Due Date: {invoiceData.dueDate || selectedPayment.dueDate}</p>
                           <p>Contact: {invoiceData.contactEmail}</p>
+                          {invoiceData.paymentInstructions && (
+                            <p className="mt-2 italic">{invoiceData.paymentInstructions}</p>
+                          )}
                         </div>
                         
                         <div className="mb-3">
@@ -978,10 +1397,26 @@ Note: Please manually attach the downloaded PDF file to this email.`
                       <div className="text-right">
                         <h3 className="text-lg font-light text-black mb-1">{invoiceData.fromName}</h3>
                         <p className="text-sm text-gray-700 mb-4">Social Media Services</p>
-                      
-                      
+                        {invoiceData.signatureUrl && (
+                          <img src={invoiceData.signatureUrl} alt="Signature" className="h-12 w-auto mt-2" />
+                        )}
                       </div>
                     </div>
+
+                    {/* Terms and Conditions */}
+                    {invoiceData.termsAndConditions && (
+                      <div className="mt-6 pt-4 border-t border-gray-200">
+                        <h4 className="text-sm font-semibold text-black mb-2">Terms & Conditions</h4>
+                        <p className="text-xs text-gray-600 leading-relaxed">{invoiceData.termsAndConditions}</p>
+                      </div>
+                    )}
+
+                    {/* Footer */}
+                    {invoiceData.footerText && (
+                      <div className="mt-4 pt-4 border-t border-gray-200">
+                        <p className="text-xs text-gray-500 text-center">{invoiceData.footerText}</p>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}

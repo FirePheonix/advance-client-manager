@@ -4,7 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState, useEffect } from "react"
 import { cn } from "@/lib/utils"
-import { Home, Users, Zap, Calendar, ChevronRight, Plus, Archive } from "lucide-react"
+import { Home, Users, Zap, Calendar, ChevronRight, Plus, Archive, FileText, Settings } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { AddClientDialog } from "@/components/add-client-dialog"
 import { getClients, createClient } from "@/lib/database"
@@ -14,7 +14,9 @@ const navigation = [
   { name: "Teams", href: "/teams", icon: Users },
   { name: "Expenses" , href: "/otherExpenses", icon: Zap },
   { name: "Timeline", href: "/timeline", icon: Calendar },
+  { name: "Notes", href: "/notes", icon: FileText },
   { name: "Automations", href: "/automations", icon: Zap },
+  { name: "Settings", href: "/settings", icon: Settings },
 ]
 
 interface Client {

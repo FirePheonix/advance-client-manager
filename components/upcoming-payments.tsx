@@ -16,7 +16,8 @@ import {
   calculateTotalPaymentRateAsync,
   resetPostCounts,
   getPostCountsForClient,
-  createPerPostPayment
+  createPerPostPayment,
+  getSettings
 } from "@/lib/database"
 import type { Client } from "@/lib/supabase"
 import { toast } from "sonner"
@@ -86,16 +87,16 @@ export function UpcomingPayments() {
     gst: '',
     phoneNumber: '',
     services: 'Social Media Services',
-    fromName: 'Janavi Sawadia',
-    fromAddress: 'House Number 3021, Sector 51 D\nChandigarh',
-    fromPhone: '9915474100',
-    fromEmail: 'sawadiajanavi@gmail.com',
-    bankAccountName: 'HDFCJanavi',
-    bankAccountNumber: 'FOUEWND134',
-    bankIFSC: '1329',
-    upiId: 'ewdwniowe@ptsbi',
-    upiPhone: '9915474100',
-    contactEmail: 'sawadiajanavi@gmail.com',
+    fromName: '',
+    fromAddress: '',
+    fromPhone: '',
+    fromEmail: '',
+    bankAccountName: '',
+    bankAccountNumber: '',
+    bankIFSC: '',
+    upiId: '',
+    upiPhone: '',
+    contactEmail: '',
     dueDate: '',
     // New editable fields for everything
     invoiceNumber: '',
@@ -125,6 +126,7 @@ export function UpcomingPayments() {
 
   useEffect(() => {
     loadPayments()
+    loadSettings()
     
     // Listen for post count updates to refresh the payments
     const handlePostCountsUpdated = (event: CustomEvent) => {
@@ -140,6 +142,60 @@ export function UpcomingPayments() {
       window.removeEventListener('postCountsUpdated', handlePostCountsUpdated as EventListener)
     }
   }, [])
+
+  const loadSettings = async () => {
+    try {
+      const settings = await getSettings()
+      console.log("Settings loaded in loadSettings:", settings) // Debug log
+      
+      // Update default invoice data with settings from database
+      setInvoiceData(prev => {
+        const updatedData = {
+          ...prev,
+          fromName: settings.from_name || 'Janavi Sawadia',
+          fromAddress: settings.from_address || '403, Maruti Kunj, Mohaba bazaar, opposite Sinapore City, Raipur, Chhattisgarh- 492001',
+          fromPhone: settings.from_phone || '9915474100',
+          fromEmail: settings.from_email || 'sawadiajanavi@gmail.com',
+          bankAccountName: settings.bank_account_name || 'Janavi Sawadia',
+          bankAccountNumber: settings.bank_account_number || '50100613672509',
+          bankIFSC: settings.bank_ifsc || 'HDFC0000769',
+          upiId: settings.upi_id || '7241113205@upi',
+          upiPhone: settings.upi_phone || '9915474100',
+          contactEmail: settings.contact_email || 'sawadiajanavi@gmail.com',
+          // Set default values for other invoice fields
+          businessTitle: 'INVOICE',
+          thankYouMessage: 'Thank you for your business!',
+          paymentInstructions: 'Please make payment using the bank details or UPI ID provided above.',
+          termsAndConditions: 'Payment is due within 15 days of invoice date. Late payments may incur additional charges.',
+          currencySymbol: '₹',
+          taxRate: '0',
+          discountAmount: '0',
+        }
+        console.log("Updated invoice data in loadSettings:", updatedData) // Debug log
+        return updatedData
+      })
+    } catch (error) {
+      console.error("Error loading settings:", error)
+    }
+  }
+
+  const resetInvoiceForm = () => {
+    // Reset only client-specific fields, keep business information from settings
+    setInvoiceData(prev => ({
+      ...prev,
+      personName: '',
+      companyName: '',
+      companyAddress: '',
+      gst: '',
+      phoneNumber: '',
+      services: 'Social Media Services',
+      dueDate: '',
+      // Keep all business information from settings (fromName, fromAddress, etc.)
+      // Keep all invoice defaults from settings (businessTitle, thankYouMessage, etc.)
+    }))
+    // Reload settings to ensure business information is up to date
+    loadSettings()
+  }
   
   // Effect to load invoice services when the invoice form is opened
   useEffect(() => {
@@ -408,45 +464,7 @@ Note: Please manually attach the downloaded PDF file to this email.`
       // Reset form
       setShowInvoiceForm(false)
       setSelectedPayment(null)
-      setInvoiceData({
-        personName: '',
-        companyName: '',
-        companyAddress: '',
-        gst: '',
-        phoneNumber: '',
-        services: 'Social Media Services',
-        fromName: 'Janavi Sawadia',
-        fromAddress: 'House Number 3021, Sector 51 D\nChandigarh',
-        fromPhone: '9915474100',
-        fromEmail: 'sawadiajanavi@gmail.com',
-        bankAccountName: 'HDFCJanavi',
-        bankAccountNumber: 'FOUEWND134',
-        bankIFSC: '1329',
-        upiId: 'ewdwniowe@ptsbi',
-        upiPhone: '9915474100',
-        contactEmail: 'sawadiajanavi@gmail.com',
-        dueDate: '',
-        invoiceNumber: '',
-        invoiceDate: '',
-        businessTitle: '',
-        businessSubtitle: '',
-        thankYouMessage: '',
-        paymentInstructions: '',
-        termsAndConditions: '',
-        footerText: '',
-        currencySymbol: '₹',
-        taxRate: '0',
-        discountAmount: '0',
-        discountReason: '',
-        notes: '',
-        logoUrl: '',
-        signatureUrl: '',
-        customField1: '',
-        customField2: '',
-        customField3: '',
-        customField4: '',
-        customField5: '',
-      })
+      resetInvoiceForm()
       
     } catch (error) {
       console.error('Error generating invoice:', error)
@@ -458,12 +476,17 @@ Note: Please manually attach the downloaded PDF file to this email.`
 
   const handleMarkAsPaid = async (paymentId: string, clientId: string, amount: number, dueDate: string) => {
     try {
+      console.log("DEBUG: Attempting to mark payment as paid", { paymentId, clientId, amount, dueDate })
+      
       // Get client to check payment type
       const client = await getClientById(clientId)
+      console.log("DEBUG: Client data retrieved", client)
       
       if (client.payment_type === 'per-post') {
+        console.log("DEBUG: Processing per-post client payment")
         // For per-post clients, get current post counts before creating payment
         const postCountsData = await getPostCountsForClient(clientId)
+        console.log("DEBUG: Post counts retrieved", postCountsData)
         
         // Create a specialized per-post payment that also resets counts
         await createPerPostPayment(
@@ -472,8 +495,9 @@ Note: Please manually attach the downloaded PDF file to this email.`
           postCountsData
         )
         
-        console.log("Per-post payment created and post counts reset")
+        console.log("DEBUG: Per-post payment created and post counts reset")
       } else {
+        console.log("DEBUG: Processing regular client payment")
         // Regular client - create standard payment
         await createPayment({
           client_id: clientId,
@@ -483,9 +507,11 @@ Note: Please manually attach the downloaded PDF file to this email.`
           type: "payment",
           description: "Monthly payment received",
         })
+        console.log("DEBUG: Regular payment created successfully")
 
         // Update client's next payment date appropriately
         await updateClientNextPayment(clientId, dueDate)
+        console.log("DEBUG: Next payment date updated successfully")
       }
 
       // Update local state to reflect payment
@@ -498,8 +524,14 @@ Note: Please manually attach the downloaded PDF file to this email.`
       // Force reload all payments to ensure everything is up to date
       loadPayments()
     } catch (error) {
-      console.error("Error marking payment as paid:", error)
-      toast.error("Failed to mark payment as paid")
+      console.error("ERROR: Failed to mark payment as paid:", error)
+      console.error("ERROR: Error details:", {
+        message: (error as any)?.message,
+        code: (error as any)?.code,
+        details: (error as any)?.details,
+        hint: (error as any)?.hint
+      })
+      toast.error(`Failed to mark payment as paid: ${(error as any)?.message || 'Unknown error'}`)
     }
   }
 
@@ -507,8 +539,16 @@ Note: Please manually attach the downloaded PDF file to this email.`
     setIsLoadingClientData(true)
     
     try {
-      // Fetch full client details
-      const clientDetails = await getClientById(payment.id)
+      // Fetch full client details and settings
+      const [clientDetails, settings] = await Promise.all([
+        getClientById(payment.id),
+        getSettings()
+      ])
+      
+      console.log("Client details:", clientDetails) // Debug log
+      console.log("Settings in handleOpenInvoiceForm:", settings) // Debug log
+      console.log("Client next_payment:", clientDetails.next_payment) // Debug log
+      console.log("Payment dueDate:", payment.dueDate) // Debug log
       
       // For per-post clients, preload post counts and calculate service items
       let servicesText = 'Social Media Services';
@@ -536,23 +576,62 @@ Note: Please manually attach the downloaded PDF file to this email.`
           .join(', ');
       }
       
-      // Auto-populate form with client data
+      // Auto-populate form with client data and settings
       setInvoiceData(prev => ({
         ...prev,
+        // Client information
         personName: clientDetails.name || '',
         companyName: clientDetails.company || clientDetails.name || '',
         companyAddress: clientDetails.company_address || '',
         gst: clientDetails.gst_number || '',
         phoneNumber: clientDetails.poc_phone || clientDetails.phone || '',
         services: servicesText,
-        dueDate: payment.dueDate || prev.dueDate,
+        dueDate: clientDetails.next_payment ? new Date(clientDetails.next_payment).toLocaleDateString() : (payment.dueDate || prev.dueDate),
+        
+        // Business information from settings
+        fromName: settings.from_name || 'Janavi Sawadia',
+        fromAddress: settings.from_address || '403, Maruti Kunj, Mohaba bazaar, opposite Sinapore City, Raipur, Chhattisgarh- 492001',
+        fromPhone: settings.from_phone || '9915474100',
+        fromEmail: settings.from_email || 'sawadiajanavi@gmail.com',
+        
+        // Bank information from settings
+        bankAccountName: settings.bank_account_name || 'Janavi Sawadia',
+        bankAccountNumber: settings.bank_account_number || '50100613672509',
+        bankIFSC: settings.bank_ifsc || 'HDFC0000769',
+        upiId: settings.upi_id || '7241113205@upi',
+        upiPhone: settings.upi_phone || '9915474100',
+        contactEmail: settings.contact_email || 'sawadiajanavi@gmail.com',
+        
+        // Invoice details - use defaults since we simplified settings
+        invoiceNumber: '',
+        invoiceDate: new Date().toLocaleDateString(),
+        businessTitle: 'INVOICE',
+        businessSubtitle: '',
+        thankYouMessage: 'Thank you for your business!',
+        paymentInstructions: 'Please make payment using the bank details or UPI ID provided above.',
+        termsAndConditions: 'Payment is due within 15 days of invoice date. Late payments may incur additional charges.',
+        footerText: '',
+        currencySymbol: '₹',
+        taxRate: '0',
+        discountAmount: '0',
+        discountReason: '',
+        notes: '',
+        logoUrl: '',
+        signatureUrl: '',
+        customField1: '',
+        customField2: '',
+        customField3: settings.customField3 || '',
+        customField4: settings.customField4 || '',
+        customField5: settings.customField5 || '',
       }))
+      
+      console.log("Due date being set:", clientDetails.next_payment ? new Date(clientDetails.next_payment).toLocaleDateString() : (payment.dueDate || "no fallback")) // Debug log
       
       // Also preload the invoice services for immediate display
       const services = await parseServicesForInvoice();
       setInvoiceServices(services);
       
-      toast.success("Client details loaded automatically!")
+      toast.success("Client details and business information loaded automatically!")
       
       setSelectedPayment(payment)
       setShowInvoiceForm(true)
@@ -687,45 +766,7 @@ Note: Please manually attach the downloaded PDF file to this email.`
                   onClick={() => {
                     setShowInvoiceForm(false)
                     setSelectedPayment(null)
-                    setInvoiceData({
-                      personName: '',
-                      companyName: '',
-                      companyAddress: '',
-                      gst: '',
-                      phoneNumber: '',
-                      services: 'Social Media Services',
-                      fromName: 'Janavi Sawadia',
-                      fromAddress: 'House Number 3021, Sector 51 D\nChandigarh',
-                      fromPhone: '9915474100',
-                      fromEmail: 'sawadiajanavi@gmail.com',
-                      bankAccountName: 'HDFCJanavi',
-                      bankAccountNumber: 'FOUEWND134',
-                      bankIFSC: '1329',
-                      upiId: 'ewdwniowe@ptsbi',
-                      upiPhone: '9915474100',
-                      contactEmail: 'sawadiajanavi@gmail.com',
-                      dueDate: '',
-                      invoiceNumber: '',
-                      invoiceDate: '',
-                      businessTitle: '',
-                      businessSubtitle: '',
-                      thankYouMessage: '',
-                      paymentInstructions: '',
-                      termsAndConditions: '',
-                      footerText: '',
-                      currencySymbol: '₹',
-                      taxRate: '0',
-                      discountAmount: '0',
-                      discountReason: '',
-                      notes: '',
-                      logoUrl: '',
-                      signatureUrl: '',
-                      customField1: '',
-                      customField2: '',
-                      customField3: '',
-                      customField4: '',
-                      customField5: '',
-                    })
+                    resetInvoiceForm()
                   }}
                 >
                   <X className="h-4 w-4" />
@@ -1147,45 +1188,7 @@ Note: Please manually attach the downloaded PDF file to this email.`
                   onClick={() => {
                     setShowInvoiceForm(false)
                     setSelectedPayment(null)
-                    setInvoiceData({
-                      personName: '',
-                      companyName: '',
-                      companyAddress: '',
-                      gst: '',
-                      phoneNumber: '',
-                      services: 'Social Media Services',
-                      fromName: 'Janavi Sawadia',
-                      fromAddress: 'House Number 3021, Sector 51 D\nChandigarh',
-                      fromPhone: '9915474100',
-                      fromEmail: 'sawadiajanavi@gmail.com',
-                      bankAccountName: 'HDFCJanavi',
-                      bankAccountNumber: 'FOUEWND134',
-                      bankIFSC: '1329',
-                      upiId: 'ewdwniowe@ptsbi',
-                      upiPhone: '9915474100',
-                      contactEmail: 'sawadiajanavi@gmail.com',
-                      dueDate: '',
-                      invoiceNumber: '',
-                      invoiceDate: '',
-                      businessTitle: '',
-                      businessSubtitle: '',
-                      thankYouMessage: '',
-                      paymentInstructions: '',
-                      termsAndConditions: '',
-                      footerText: '',
-                      currencySymbol: '₹',
-                      taxRate: '0',
-                      discountAmount: '0',
-                      discountReason: '',
-                      notes: '',
-                      logoUrl: '',
-                      signatureUrl: '',
-                      customField1: '',
-                      customField2: '',
-                      customField3: '',
-                      customField4: '',
-                      customField5: '',
-                    })
+                    resetInvoiceForm()
                   }}
                 >
                   Cancel

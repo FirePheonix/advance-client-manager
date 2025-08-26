@@ -1,4 +1,4 @@
-import { supabase, type Client, type Payment, type Task, type TeamMember, type TieredPayment, type PostCount } from "./supabase"
+import { supabase, type Client, type Payment, type Task, type TeamMember, type TieredPayment, type PostCount, type Settings } from "./supabase"
 import { getNextPaymentDate, getNextPaymentDateWithFixedDay } from './date-utils'
 
 // Utility function to get monthYear from next_payment date
@@ -1283,3 +1283,144 @@ export async function ensureAutomaticTierUpdates() {
 
 // Alias for backward compatibility
 export const updateAllTierTransitions = ensureAutomaticTierUpdates;
+
+// Notes operations
+export async function getNotes() {
+  const { data, error } = await supabase
+    .from("notes")
+    .select("*")
+    .order("created_at", { ascending: false })
+
+  if (error) throw error
+  return data
+}
+
+export async function createNote(note: {
+  title: string
+  content: string
+}) {
+  const { data, error } = await supabase
+    .from("notes")
+    .insert({
+      title: note.title.trim(),
+      content: note.content.trim(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    })
+    .select()
+    .single()
+
+  if (error) {
+    console.error("Supabase error:", error)
+    throw new Error("Failed to create note")
+  }
+  
+  return data
+}
+
+export async function updateNote(id: string, updates: {
+  title?: string
+  content?: string
+}) {
+  const { data, error } = await supabase
+    .from("notes")
+    .update({
+      ...updates,
+      updated_at: new Date().toISOString()
+    })
+    .eq("id", id)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
+}
+
+export async function deleteNote(id: string) {
+  const { error } = await supabase
+    .from("notes")
+    .delete()
+    .eq("id", id)
+
+  if (error) throw error
+  return true
+}
+
+// Settings operations
+export async function getSettings() {
+  const { data, error } = await supabase
+    .from("settings")
+    .select("*")
+    .limit(1)
+    .single()
+
+  if (error) {
+    // If no settings exist, create default settings
+    if (error.code === 'PGRST116') {
+      return await createDefaultSettings()
+    }
+    throw error
+  }
+  
+  return data
+}
+
+export async function createDefaultSettings() {
+  const defaultSettings = {
+    from_name: 'Janavi Sawadia',
+    from_address: '403, Maruti Kunj, Mohaba bazaar, opposite Sinapore City, Raipur, Chhattisgarh- 492001',
+    from_phone: '9915474100',
+    from_email: 'sawadiajanavi@gmail.com',
+    bank_account_name: 'Janavi Sawadia',
+    bank_account_number: '50100613672509',
+    bank_ifsc: 'HDFC0000769',
+    upi_id: '7241113205@upi',
+    upi_phone: '9915474100',
+    contact_email: 'sawadiajanavi@gmail.com'
+  }
+
+  const { data, error } = await supabase
+    .from("settings")
+    .insert(defaultSettings)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
+}
+
+export async function updateSettings(updates: Partial<import("./supabase").Settings>) {
+  try {
+    // First get the current settings to get the ID
+    const currentSettings = await getSettings()
+    
+    const mappedUpdates = {
+      ...updates,
+      updated_at: new Date().toISOString()
+    }
+    
+    // Remove undefined values
+    Object.keys(mappedUpdates).forEach(key => {
+      if (mappedUpdates[key] === undefined) {
+        delete mappedUpdates[key]
+      }
+    })
+    
+    const { data, error } = await supabase
+      .from("settings")
+      .update(mappedUpdates)
+      .eq("id", currentSettings.id)
+      .select()
+      .single()
+
+    if (error) {
+      console.error("Supabase error:", error)
+      throw error
+    }
+    
+    return data
+  } catch (error) {
+    console.error("Error in updateSettings:", error)
+    throw error
+  }
+}

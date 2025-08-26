@@ -109,3 +109,19 @@ export interface PostCount {
   created_at: string
   updated_at: string
 }
+
+export interface Settings {
+  id: string
+  from_name: string
+  from_address: string
+  from_phone: string
+  from_email: string
+  bank_account_name: string
+  bank_account_number: string
+  bank_ifsc: string
+  upi_id: string
+  upi_phone: string
+  contact_email: string
+  created_at: string
+  updated_at: string
+}

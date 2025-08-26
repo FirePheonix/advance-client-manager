@@ -37,16 +37,26 @@ export function UpcomingTeamPayments() {
       
       // Get all expenses
       const expenses = await getOtherExpenses();
+      console.log(`All expenses:`, expenses);
       
       // Look for salary payments for this team member in the current month
       const found = expenses.some(expense => {
         const expenseDate = new Date(expense.date);
+        const isSalaryPayment = expense.title.includes(`Salary - ${memberName}`);
+        const isInMonth = expenseDate >= monthStart && expenseDate <= monthEnd;
+        
+        console.log(`Checking expense: "${expense.title}" for ${memberName}`);
+        console.log(`  - Is salary payment: ${isSalaryPayment}`);
+        console.log(`  - Expense date: ${expenseDate.toISOString()}`);
+        console.log(`  - Month start: ${monthStart.toISOString()}`);
+        console.log(`  - Month end: ${monthEnd.toISOString()}`);
+        console.log(`  - Is in month: ${isInMonth}`);
+        
         // Check if the expense is for this team member's salary in the current month
-        return expense.title.includes(`Salary - ${memberName}`) && 
-               expenseDate >= monthStart && 
-               expenseDate <= monthEnd;
+        return isSalaryPayment && isInMonth;
       });
       
+      console.log(`Checking payment for ${memberName} in ${monthStart.toISOString()} to ${monthEnd.toISOString()}: ${found}`);
       return found;
     } catch (error) {
       console.error("Error checking payment status:", error);
@@ -68,35 +78,77 @@ export function UpcomingTeamPayments() {
       
       // Process each member to determine payment status
       const upcomingPaymentsPromises = activeMembers.map(async (member) => {
-        // Parse payment_date - convert from string format to a Date object
-        const paymentDate = new Date(member.payment_date);
-        // Get the day of month for this payment
-        const paymentDay = paymentDate.getDate();
+        console.log(`Processing member: ${member.name}, payment_date: ${member.payment_date}`);
         
-        // Create a date for this month's payment
-        const thisMonthPayment = new Date(today.getFullYear(), today.getMonth(), paymentDay);
+        // Parse payment_date - this should be the day of month when payment is due
+        let paymentDay: number;
         
-        // If today is past this month's payment date, look at next month
-        const nextPaymentDate = today > thisMonthPayment 
-          ? new Date(today.getFullYear(), today.getMonth() + 1, paymentDay)
-          : thisMonthPayment;
+        try {
+          // Try to parse as a date first
+          const paymentDate = new Date(member.payment_date);
+          
+          // Check if it's a valid date and not NaN
+          if (!isNaN(paymentDate.getTime())) {
+            paymentDay = paymentDate.getDate();
+            console.log(`Extracted payment day from date: ${paymentDay}`);
+          } else {
+            // If it's not a valid date, try to extract day from string like "Jul 30, 2025"
+            const dayMatch = member.payment_date.match(/(\d{1,2})/);
+            if (dayMatch) {
+              paymentDay = parseInt(dayMatch[1]);
+              console.log(`Extracted payment day from string: ${paymentDay}`);
+            } else {
+              // Default to 1st of month if we can't parse
+              paymentDay = 1;
+              console.log(`Using default payment day: ${paymentDay}`);
+            }
+          }
+        } catch (error) {
+          console.error(`Error parsing payment date for ${member.name}:`, error);
+          paymentDay = 1; // Default to 1st of month
+        }
         
-        // Calculate days until payment is due
+        console.log(`Final payment day: ${paymentDay}`);
+        
+        // Find the most recent unpaid payment
+        let unpaidPaymentDate: Date | null = null;
+        let isPaid = false;
+        
+        // Check the last 3 months to find the most recent unpaid payment
+        for (let i = 0; i < 3; i++) {
+          const checkDate = new Date(today.getFullYear(), today.getMonth() - i, paymentDay);
+          const isPaidForThisMonth = await hasBeenPaidThisPeriod(member.name, checkDate.toISOString());
+          
+          console.log(`Checking ${member.name} for ${checkDate.toISOString()}: paid = ${isPaidForThisMonth}`);
+          
+          if (!isPaidForThisMonth) {
+            // Found an unpaid payment
+            unpaidPaymentDate = checkDate;
+            break;
+          }
+        }
+        
+        // If no unpaid payment found in the last 3 months, check next month's payment
+        if (!unpaidPaymentDate) {
+          unpaidPaymentDate = new Date(today.getFullYear(), today.getMonth() + 1, paymentDay);
+          isPaid = false;
+        } else {
+          isPaid = false; // We found an unpaid payment
+        }
+        
+        // Calculate days until due
         const daysUntilDue = Math.ceil(
-          (nextPaymentDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+          (unpaidPaymentDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
         );
         
-        // Check if this payment has already been made
-        const isPaid = await hasBeenPaidThisPeriod(member.name, nextPaymentDate.toISOString());
-        
-        console.log(`${member.name} payment due in ${daysUntilDue} days, isPaid: ${isPaid}`);
+        console.log(`${member.name}: unpaid payment date ${unpaidPaymentDate.toISOString()}, daysUntilDue: ${daysUntilDue}, isPaid: ${isPaid}`);
         
         return {
           id: member.id,
           name: member.name,
           role: member.role,
           amount: parseFloat(member.salary.toString()),
-          paymentDate: nextPaymentDate.toISOString().split('T')[0],
+          paymentDate: unpaidPaymentDate.toISOString().split('T')[0],
           daysUntilDue,
           isPaid
         };
@@ -105,10 +157,10 @@ export function UpcomingTeamPayments() {
       // Wait for all the payment status checks to complete
       const upcomingPayments = await Promise.all(upcomingPaymentsPromises);
       
-      // Filter to only show payments coming up in the next 7 days
+      // Filter to show payments due within 7 days OR overdue payments (like client payments)
       const filteredPayments = upcomingPayments
-        .filter(payment => payment.daysUntilDue <= 7)
-        .sort((a, b) => a.daysUntilDue - b.daysUntilDue);
+        .filter(payment => !payment.isPaid && (payment.daysUntilDue <= 7 || payment.daysUntilDue < 0)) // Show within 7 days OR overdue
+        .sort((a, b) => a.daysUntilDue - b.daysUntilDue); // Sort by days until due (overdue first)
       
       console.log("Filtered payments to show:", filteredPayments);
       
@@ -202,33 +254,27 @@ export function UpcomingTeamPayments() {
                   <p className="text-green-400 font-medium">{formatCurrency(payment.amount)}</p>
                   <div className="flex items-center justify-end space-x-2 mt-1">
                     <Badge
-                      variant={payment.isPaid ? "default" : payment.daysUntilDue <= 0 ? "destructive" : "secondary"}
-                      className={payment.isPaid 
-                        ? "bg-green-600" 
-                        : payment.daysUntilDue <= 0 
-                          ? "bg-red-600" 
-                          : "bg-yellow-600"
+                      variant={payment.daysUntilDue <= 0 ? "destructive" : "secondary"}
+                      className={payment.daysUntilDue <= 0 
+                        ? "bg-red-600" 
+                        : "bg-yellow-600"
                       }
                     >
-                      {payment.isPaid 
-                        ? "Paid" 
-                        : payment.daysUntilDue <= 0 
-                          ? `Overdue (${Math.abs(payment.daysUntilDue)}d)` 
-                          : `Due in ${payment.daysUntilDue}d`
+                      {payment.daysUntilDue <= 0 
+                        ? `Overdue (${Math.abs(payment.daysUntilDue)}d)` 
+                        : `Due in ${payment.daysUntilDue}d`
                       }
                     </Badge>
                     
-                    {!payment.isPaid && (
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="text-xs p-1 hover:bg-gray-800 text-green-500"
-                        onClick={() => handleMarkAsPaid(payment)}
-                        disabled={isSubmitting}
-                      >
-                        <Check className="h-3 w-3" />
-                      </Button>
-                    )}
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="text-xs p-1 hover:bg-gray-800 text-green-500"
+                      onClick={() => handleMarkAsPaid(payment)}
+                      disabled={isSubmitting}
+                    >
+                      <Check className="h-3 w-3" />
+                    </Button>
                   </div>
                 </div>
               </div>

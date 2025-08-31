@@ -122,6 +122,7 @@ export function UpcomingPayments() {
   })
   const [isGenerating, setIsGenerating] = useState(false)
   const [isLoadingClientData, setIsLoadingClientData] = useState(false)
+  const [isUpdatingPreview, setIsUpdatingPreview] = useState(false)
   const invoiceRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -212,6 +213,62 @@ export function UpcomingPayments() {
       loadInvoiceServices()
     }
   }, [showInvoiceForm, selectedPayment])
+
+  // Effect to update invoice services when services field changes
+  useEffect(() => {
+    if (showInvoiceForm && selectedPayment && invoiceData.services) {
+      setIsUpdatingPreview(true)
+      const timeoutId = setTimeout(async () => {
+        try {
+                      // Parse services with a more flexible approach
+            const parsed = parseServicesFlexibly(invoiceData.services)
+            
+            if (parsed.length > 0) {
+              setInvoiceServices(parsed)
+              setIsUpdatingPreview(false)
+              return
+            }
+          
+          // If no parsing worked, use the original parseServicesForInvoice function
+          const services = await parseServicesForInvoice()
+          setInvoiceServices(services)
+          setIsUpdatingPreview(false)
+        } catch (error) {
+          console.error("Error updating invoice services:", error)
+          setIsUpdatingPreview(false)
+        }
+      }, 200) // Reduced debounce to 200ms for better responsiveness
+      
+      return () => clearTimeout(timeoutId)
+    }
+  }, [invoiceData.services, showInvoiceForm, selectedPayment])
+
+  // Effect to force re-render of invoice preview when key fields change
+  useEffect(() => {
+    if (showInvoiceForm && selectedPayment) {
+      // Force a re-render of the invoice preview by updating a state variable
+      // This ensures the preview updates when currency, discount, tax, etc. change
+      const timeoutId = setTimeout(() => {
+        // Trigger a re-render by updating the invoice services state
+        setInvoiceServices(prev => [...prev])
+      }, 100)
+      
+      return () => clearTimeout(timeoutId)
+    }
+  }, [
+    invoiceData.currencySymbol, 
+    invoiceData.discountAmount, 
+    invoiceData.taxRate, 
+    invoiceData.discountReason,
+    invoiceData.businessTitle,
+    invoiceData.thankYouMessage,
+    invoiceData.paymentInstructions,
+    invoiceData.termsAndConditions,
+    invoiceData.notes,
+    invoiceData.footerText,
+    showInvoiceForm, 
+    selectedPayment
+  ])
 
   const loadPayments = async () => {
     try {
@@ -321,18 +378,7 @@ export function UpcomingPayments() {
       
       // If we have the services in a parseable format from the form, use them
       if (invoiceData.services && invoiceData.services.includes('₹')) {
-        // Parse services that are in format "Service (₹Price), Service2 (₹Price2)"
-        const parsed = invoiceData.services.split(', ').map(serviceStr => {
-          const match = serviceStr.match(/^(.+)\s\(₹(\d+)\)$/)
-          if (match) {
-            return {
-              name: match[1].trim(),
-              amount: parseInt(match[2])
-            }
-          }
-          return null
-        }).filter((item): item is { name: string; amount: number } => item !== null)
-        
+        const parsed = parseServicesFlexibly(invoiceData.services)
         if (parsed.length > 0) {
           return parsed
         }
@@ -351,6 +397,61 @@ export function UpcomingPayments() {
         amount: selectedPayment.amount
       }]
     }
+  }
+
+  // Flexible service parser that handles various formats
+  const parseServicesFlexibly = (servicesString: string): Array<{ name: string; amount: number }> => {
+    if (!servicesString || !servicesString.includes('₹')) {
+      return []
+    }
+
+    const services = servicesString.split(',').map(serviceStr => {
+      const trimmed = serviceStr.trim()
+      
+      // Try multiple patterns to extract name and amount
+      let name = ''
+      let amount = 0
+      
+      // Pattern 1: "Service Name (X posts) - ₹Amount" - preserve the full name including posts
+      if (trimmed.includes(' - ₹')) {
+        const parts = trimmed.split(' - ₹')
+        if (parts.length === 2) {
+          name = parts[0].trim()
+          amount = parseInt(parts[1])
+        }
+      }
+      // Pattern 2: "Service Name (₹Amount)"
+      else if (trimmed.includes('(₹')) {
+        const match = trimmed.match(/^(.+?)\s*\(₹(\d+)\)$/)
+        if (match) {
+          name = match[1].trim()
+          amount = parseInt(match[2])
+        }
+      }
+      // Pattern 3: Just find the last ₹ and extract amount
+      else {
+        const lastRupeeIndex = trimmed.lastIndexOf('₹')
+        if (lastRupeeIndex !== -1) {
+          const beforeRupee = trimmed.substring(0, lastRupeeIndex).trim()
+          const afterRupee = trimmed.substring(lastRupeeIndex + 1)
+          const amountMatch = afterRupee.match(/^(\d+)/)
+          
+          if (amountMatch && beforeRupee) {
+            name = beforeRupee
+            amount = parseInt(amountMatch[1])
+          }
+        }
+      }
+      
+      // Only return if we found both name and amount
+      if (name && amount > 0) {
+        return { name, amount }
+      }
+      
+      return null
+    }).filter((item): item is { name: string; amount: number } => item !== null)
+    
+    return services
   }
 
   const generatePDF = async () => {
@@ -844,16 +945,24 @@ Note: Please manually attach the downloaded PDF file to this email.`
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
                     Services Description
+                    {isUpdatingPreview && (
+                      <span className="ml-2 text-blue-400 text-xs">
+                        <div className="inline-flex items-center">
+                          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-400 mr-1"></div>
+                          Updating preview...
+                        </div>
+                      </span>
+                    )}
                   </label>
                   <textarea
                     value={invoiceData.services}
                     onChange={(e) => setInvoiceData(prev => ({ ...prev, services: e.target.value }))}
                     rows={3}
                     className="w-full px-4 py-3 bg-black border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Enter services. For separate line items, use format: Service 1 (₹5000), Service 2 (₹3000)"
+                    placeholder="Enter services. For separate line items, use format: LinkedIn Post (3 posts) - ₹4500, WhatsApp Message (2 posts) - ₹3000"
                   />
                   <p className="text-xs text-gray-400 mt-1">
-                    💡 Tip: Use "Service Name (₹Amount)" format for individual line items, separated by commas
+                    💡 Tip: Use "Service Name (X posts) - ₹Amount" format for individual line items, separated by commas
                   </p>
                 </div>
                 {/* FROM (Your Business Info) */}

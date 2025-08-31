@@ -538,7 +538,7 @@ export async function getRecentActivity() {
         payment.type === "payment"
           ? `Payment ${payment.status} from ${payment.clients?.name}`
           : `${payment.post_count} posts completed for ${payment.clients?.name}`,
-      amount: payment.type === "payment" ? `₹${payment.amount}` : null,
+      amount: (payment.type === "payment" || payment.type === "post") ? `₹${payment.amount}` : null,
       time: new Date(payment.created_at).toLocaleString(),
       status: payment.status === "completed" ? "success" : payment.status === "pending" ? "warning" : "info",
     })) || []

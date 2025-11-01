@@ -1,0 +1,627 @@
+/* Timeline Page - White Mode Styles (Muse Ant Design Dashboard) */
+
+/* Layout Container */
+.timeline-container {
+  background: #fafafa;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+/* Header Section */
+.timeline-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
+
+.timeline-title-section h1 {
+  font-size: 32px;
+  font-weight: 700;
+  color: #262626;
+  margin: 0 0 8px 0;
+  line-height: 1.2;
+}
+
+.timeline-title-section p {
+  font-size: 14px;
+  color: #8c8c8c;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* Export Button */
+.export-button {
+  background: #1890ff;
+  border-color: #1890ff;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid #1890ff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.export-button:hover {
+  background: #096dd9;
+  border-color: #096dd9;
+  transform: translateY(-1px);
+  box-shadow: 0px 4px 8px rgba(24, 144, 255, 0.3);
+}
+
+/* Stats Cards Grid */
+.timeline-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+/* Stats Card - Based on Dashboard */
+.timeline-stats-card {
+  box-shadow: 0px 20px 27px #0000000d;
+  border-radius: 12px;
+  background: #fff;
+  border: 0;
+  padding: 24px;
+}
+
+.timeline-stats-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.timeline-stats-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #8c8c8c;
+  margin: 0;
+}
+
+.timeline-stats-icon {
+  width: 16px;
+  height: 16px;
+  color: #52c41a;
+}
+
+.timeline-stats-icon.pending {
+  color: #faad14;
+}
+
+.timeline-stats-icon.overdue {
+  color: #ff4d4f;
+}
+
+.timeline-stats-icon.clients {
+  color: #722ed1;
+}
+
+.timeline-stats-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: #262626;
+  margin: 0 0 4px 0;
+  line-height: 1.2;
+}
+
+.timeline-stats-subtitle {
+  font-size: 12px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.timeline-stats-subtitle.completed {
+  color: #52c41a;
+}
+
+.timeline-stats-subtitle.pending {
+  color: #faad14;
+}
+
+.timeline-stats-subtitle.overdue {
+  color: #ff4d4f;
+}
+
+.timeline-stats-subtitle.clients {
+  color: #722ed1;
+}
+
+/* Filters Section */
+.timeline-filters {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.timeline-search-container {
+  position: relative;
+  flex: 1;
+  max-width: 400px;
+}
+
+.timeline-search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #8c8c8c;
+  width: 16px;
+  height: 16px;
+}
+
+.timeline-search-input {
+  width: 100%;
+  padding: 8px 12px 8px 40px;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  background: white;
+  color: #262626;
+}
+
+.timeline-search-input::placeholder {
+  color: #8c8c8c;
+}
+
+.timeline-search-input:focus {
+  outline: none;
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+}
+
+.timeline-select {
+  background: white;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 14px;
+  color: #262626;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 150px;
+}
+
+.timeline-select:focus {
+  outline: none;
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+}
+
+/* Chart Card */
+.timeline-chart-card {
+  box-shadow: 0px 20px 27px #0000000d;
+  border-radius: 12px;
+  background: #fff;
+  border: 0;
+  margin-bottom: 24px;
+}
+
+.timeline-chart-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.timeline-chart-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #262626;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.timeline-chart-content {
+  padding: 24px;
+}
+
+.timeline-chart-svg {
+  background: #fafafa;
+  border-radius: 8px;
+  border: 1px solid #f0f0f0;
+}
+
+/* Payment Lists */
+.timeline-payment-card {
+  box-shadow: 0px 20px 27px #0000000d;
+  border-radius: 12px;
+  background: #fff;
+  border: 0;
+  margin-bottom: 24px;
+}
+
+.timeline-payment-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.timeline-payment-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #262626;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.timeline-payment-content {
+  padding: 24px;
+}
+
+.timeline-payment-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.timeline-payment-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  background: #fafafa;
+  border-radius: 8px;
+  border: 1px solid #f0f0f0;
+  transition: all 0.2s ease;
+}
+
+.timeline-payment-item:hover {
+  background: #f0f9ff;
+  border-color: #1890ff;
+}
+
+.timeline-payment-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.timeline-payment-client {
+  font-size: 14px;
+  font-weight: 600;
+  color: #262626;
+  margin: 0;
+}
+
+.timeline-payment-date {
+  font-size: 12px;
+  color: #8c8c8c;
+  margin: 0;
+}
+
+.timeline-payment-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.timeline-payment-amount {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.timeline-payment-amount.pending {
+  color: #faad14;
+}
+
+.timeline-payment-amount.overdue {
+  color: #ff4d4f;
+}
+
+.timeline-payment-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 12px;
+  line-height: 1.4;
+}
+
+.timeline-payment-badge.pending {
+  background: #fff7e6;
+  color: #d48806;
+  border: 1px solid #ffd591;
+}
+
+.timeline-payment-badge.overdue {
+  background: #fff2f0;
+  color: #cf1322;
+  border: 1px solid #ffccc7;
+}
+
+.timeline-empty-state {
+  text-align: center;
+  padding: 32px 16px;
+  color: #8c8c8c;
+  font-size: 14px;
+}
+
+/* Client Breakdown */
+.timeline-client-card {
+  box-shadow: 0px 20px 27px #0000000d;
+  border-radius: 12px;
+  background: #fff;
+  border: 0;
+  margin-bottom: 24px;
+}
+
+.timeline-client-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.timeline-client-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #262626;
+  margin: 0;
+}
+
+.timeline-client-content {
+  padding: 24px;
+}
+
+.timeline-client-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.timeline-client-item {
+  padding: 16px;
+  background: #fafafa;
+  border-radius: 8px;
+  border: 1px solid #f0f0f0;
+}
+
+.timeline-client-header-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.timeline-client-color {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.timeline-client-info h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #262626;
+  margin: 0 0 2px 0;
+}
+
+.timeline-client-info p {
+  font-size: 12px;
+  color: #8c8c8c;
+  margin: 0;
+}
+
+.timeline-client-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.timeline-client-stat {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.timeline-client-stat-label {
+  font-size: 12px;
+  color: #8c8c8c;
+}
+
+.timeline-client-stat-value {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.timeline-client-stat-value.paid {
+  color: #52c41a;
+}
+
+.timeline-client-stat-value.pending {
+  color: #faad14;
+}
+
+.timeline-client-stat-value.overdue {
+  color: #ff4d4f;
+}
+
+/* Loading States */
+.timeline-loading-container {
+  padding: 20px;
+  background: #fafafa;
+  min-height: 100vh;
+}
+
+.timeline-loading-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
+
+.timeline-loading-title h1 {
+  font-size: 32px;
+  font-weight: 700;
+  color: #262626;
+  margin: 0 0 8px 0;
+}
+
+.timeline-loading-title p {
+  font-size: 14px;
+  color: #8c8c8c;
+  margin: 0;
+}
+
+.timeline-loading-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 24px;
+}
+
+.timeline-loading-card {
+  box-shadow: 0px 20px 27px #0000000d;
+  border-radius: 12px;
+  background: #fff;
+  border: 0;
+  padding: 24px;
+}
+
+.timeline-loading-skeleton {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.timeline-loading-line-wide {
+  height: 16px;
+  background: #f0f0f0;
+  border-radius: 4px;
+  width: 75%;
+  margin-bottom: 8px;
+}
+
+.timeline-loading-line-narrow {
+  height: 32px;
+  background: #f0f0f0;
+  border-radius: 4px;
+  width: 50%;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .timeline-container {
+    padding: 16px;
+  }
+  
+  .timeline-header {
+    flex-direction: column;
+    gap: 16px;
+    align-items: flex-start;
+  }
+  
+  .timeline-stats-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .timeline-filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .timeline-search-container {
+    max-width: none;
+  }
+  
+  .timeline-payment-item {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  
+  .timeline-payment-right {
+    align-items: flex-start;
+    width: 100%;
+  }
+  
+  .timeline-client-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .timeline-chart-content {
+    padding: 16px;
+    overflow-x: auto;
+  }
+}
+
+@media (max-width: 576px) {
+  .timeline-stats-card {
+    padding: 16px;
+  }
+  
+  .timeline-stats-value {
+    font-size: 24px;
+  }
+  
+  .timeline-title-section h1 {
+    font-size: 24px;
+  }
+  
+  .timeline-client-item {
+    padding: 12px;
+  }
+  
+  .timeline-payment-item {
+    padding: 12px;
+  }
+}
+
+/* Focus and accessibility */
+.timeline-search-input:focus,
+.timeline-select:focus,
+.export-button:focus {
+  outline: 2px solid #1890ff;
+  outline-offset: 2px;
+}
+
+/* Animation for cards */
+.timeline-stats-card,
+.timeline-chart-card,
+.timeline-payment-card,
+.timeline-client-card {
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Hover effects */
+.timeline-payment-item,
+.timeline-client-item {
+  transition: all 0.2s ease;
+}
+
+.export-button {
+  transition: all 0.2s ease;
+}
+
+.export-button:hover {
+  transform: translateY(-1px);
+}

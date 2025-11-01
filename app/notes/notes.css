@@ -1,0 +1,475 @@
+/* Notes Page - White Mode Styles (Muse Ant Design Dashboard) */
+
+/* Layout Container */
+.notes-container {
+  background: #fafafa;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+/* Header Section */
+.notes-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
+
+.notes-title-section h1 {
+  font-size: 32px;
+  font-weight: 700;
+  color: #262626;
+  margin: 0 0 8px 0;
+  line-height: 1.2;
+}
+
+.notes-title-section p {
+  font-size: 14px;
+  color: #8c8c8c;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* New Note Button */
+.new-note-button {
+  background: #1890ff;
+  border-color: #1890ff;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid #1890ff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.new-note-button:hover {
+  background: #096dd9;
+  border-color: #096dd9;
+  transform: translateY(-1px);
+  box-shadow: 0px 4px 8px rgba(24, 144, 255, 0.3);
+}
+
+/* Notes Grid */
+.notes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
+}
+
+/* Note Card */
+.note-card {
+  box-shadow: 0px 20px 27px #0000000d;
+  border-radius: 12px;
+  background: #fff;
+  border: 0;
+  transition: all 0.2s ease;
+}
+
+.note-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0px 24px 35px #00000012;
+}
+
+.note-card-header {
+  padding: 20px 20px 12px 20px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.note-card-title-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+
+.note-card-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #262626;
+  margin: 0;
+  line-height: 1.3;
+  flex: 1;
+  margin-right: 12px;
+}
+
+.note-card-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.note-action-button {
+  padding: 4px;
+  border: none;
+  background: transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.note-action-button.edit {
+  color: #1890ff;
+}
+
+.note-action-button.edit:hover {
+  background: #e6f7ff;
+  color: #096dd9;
+}
+
+.note-action-button.delete {
+  color: #ff4d4f;
+}
+
+.note-action-button.delete:hover {
+  background: #fff2f0;
+  color: #cf1322;
+}
+
+.note-card-meta {
+  font-size: 12px;
+  color: #8c8c8c;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.note-card-content {
+  padding: 16px 20px 20px 20px;
+}
+
+.note-card-text {
+  font-size: 14px;
+  color: #595959;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  margin: 0;
+}
+
+/* Loading Cards */
+.loading-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
+}
+
+.loading-card {
+  box-shadow: 0px 20px 27px #0000000d;
+  border-radius: 12px;
+  background: #fff;
+  border: 0;
+}
+
+.loading-card-header {
+  padding: 20px 20px 12px 20px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.loading-card-content {
+  padding: 16px 20px 20px 20px;
+}
+
+.loading-skeleton {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.loading-title {
+  height: 20px;
+  background: #f0f0f0;
+  border-radius: 4px;
+  width: 75%;
+  margin-bottom: 8px;
+}
+
+.loading-meta {
+  height: 16px;
+  background: #f0f0f0;
+  border-radius: 4px;
+  width: 50%;
+}
+
+.loading-line {
+  height: 16px;
+  background: #f0f0f0;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.loading-line.short {
+  width: 85%;
+}
+
+.loading-line.medium {
+  width: 70%;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Empty State */
+.empty-state-card {
+  box-shadow: 0px 20px 27px #0000000d;
+  border-radius: 12px;
+  background: #fff;
+  border: 0;
+  padding: 48px 24px;
+  text-align: center;
+}
+
+.empty-state-content {
+  color: #8c8c8c;
+}
+
+.empty-state-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+}
+
+.empty-state-description {
+  font-size: 14px;
+  margin: 0;
+}
+
+/* Dialog Styles */
+.notes-dialog {
+  border-radius: 12px !important;
+  overflow: hidden;
+}
+
+.notes-dialog-header {
+  background: #fafafa;
+  padding: 20px 24px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.notes-dialog-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #262626;
+  margin: 0;
+}
+
+.notes-dialog-content {
+  padding: 24px;
+  background: white;
+}
+
+.notes-dialog-footer {
+  padding: 16px 24px;
+  background: #fafafa;
+  border-top: 1px solid #f0f0f0;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+/* Form Styles */
+.notes-form-group {
+  margin-bottom: 20px;
+}
+
+.notes-form-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #262626;
+  margin-bottom: 8px;
+}
+
+.notes-form-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  background: white;
+  color: #262626;
+  font-family: inherit;
+}
+
+.notes-form-input:focus {
+  outline: none;
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+}
+
+.notes-form-input::placeholder {
+  color: #bfbfbf;
+}
+
+.notes-form-textarea {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  font-size: 14px;
+  resize: vertical;
+  min-height: 120px;
+  font-family: inherit;
+  transition: all 0.2s ease;
+  background: white;
+  color: #262626;
+  line-height: 1.6;
+}
+
+.notes-form-textarea:focus {
+  outline: none;
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+}
+
+.notes-form-textarea::placeholder {
+  color: #bfbfbf;
+}
+
+/* Button Variants */
+.notes-button-primary {
+  background: #1890ff;
+  border-color: #1890ff;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid #1890ff;
+}
+
+.notes-button-primary:hover:not(:disabled) {
+  background: #096dd9;
+  border-color: #096dd9;
+  transform: translateY(-1px);
+  box-shadow: 0px 4px 8px rgba(24, 144, 255, 0.3);
+}
+
+.notes-button-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.notes-button-outline {
+  background: white;
+  border: 1px solid #d9d9d9;
+  color: #595959;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.notes-button-outline:hover:not(:disabled) {
+  border-color: #1890ff;
+  color: #1890ff;
+  background: #f0f9ff;
+}
+
+.notes-button-outline:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .notes-container {
+    padding: 16px;
+  }
+  
+  .notes-header {
+    flex-direction: column;
+    gap: 16px;
+    align-items: flex-start;
+  }
+  
+  .notes-title-section h1 {
+    font-size: 24px;
+  }
+  
+  .notes-grid,
+  .loading-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .note-card-header,
+  .loading-card-header {
+    padding: 16px 16px 12px 16px;
+  }
+  
+  .note-card-content,
+  .loading-card-content {
+    padding: 12px 16px 16px 16px;
+  }
+  
+  .notes-dialog-content {
+    padding: 16px;
+  }
+  
+  .empty-state-card {
+    padding: 32px 16px;
+  }
+}
+
+@media (max-width: 576px) {
+  .note-card-title-section {
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+  }
+  
+  .note-card-actions {
+    align-self: flex-end;
+  }
+  
+  .note-card-title {
+    margin-right: 0;
+    margin-bottom: 4px;
+  }
+}
+
+/* Focus and accessibility */
+.notes-form-input:focus,
+.notes-form-textarea:focus,
+.notes-button-primary:focus,
+.notes-button-outline:focus,
+.note-action-button:focus,
+.new-note-button:focus {
+  outline: 2px solid #1890ff;
+  outline-offset: 2px;
+}
+
+/* Animation for cards */
+.note-card,
+.loading-card,
+.empty-state-card {
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

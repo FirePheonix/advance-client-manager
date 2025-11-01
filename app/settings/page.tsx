@@ -100,10 +100,10 @@ export default function SettingsPage() {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold text-white">Settings</h1>
-          <p className="text-gray-400 mt-2">Manage your business information and payment details</p>
+          <h1 className="text-3xl font-bold text-black">Settings</h1>
+          <p className="text-gray-600 mt-2">Manage your business information and payment details</p>
         </div>
-        <div className="text-white">Loading settings...</div>
+        <div className="text-black">Loading settings...</div>
       </div>
     )
   }
@@ -111,38 +111,38 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-white">Settings</h1>
-        <p className="text-gray-400 mt-2">Manage your business information and payment details</p>
+        <h1 className="text-3xl font-bold text-black">Settings</h1>
+        <p className="text-gray-600 mt-2">Manage your business information and payment details</p>
       </div>
 
       <div className="space-y-6">
         {/* Business Information */}
-        <Card className="bg-gray-800 border-gray-700">
+        <Card className="bg-white border-gray-200 shadow-sm">
           <CardHeader>
-            <CardTitle className="text-white flex items-center">
+            <CardTitle className="text-black flex items-center">
               <Building className="mr-2 h-5 w-5" />
               Business Information
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="from_name" className="text-white">From Name</Label>
+              <Label htmlFor="from_name" className="text-gray-700">From Name</Label>
               <Input
                 id="from_name"
                 value={settings.from_name}
                 onChange={(e) => handleInputChange('from_name', e.target.value)}
-                className="bg-gray-700 border-gray-600 text-white"
+                className="bg-white border-gray-300 text-black"
                 placeholder="Janavi Sawadia"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="from_address" className="text-white">From Address</Label>
+              <Label htmlFor="from_address" className="text-gray-700">From Address</Label>
               <Textarea
                 id="from_address"
                 value={settings.from_address}
                 onChange={(e) => handleInputChange('from_address', e.target.value)}
-                className="bg-gray-700 border-gray-600 text-white"
+                className="bg-white border-gray-300 text-black"
                 rows={3}
                 placeholder="403, Maruti Kunj, Mohaba bazaar, opposite Sinapore City, Raipur, Chhattisgarh- 492001"
               />
@@ -150,24 +150,24 @@ export default function SettingsPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="from_phone" className="text-white">From Phone</Label>
+                <Label htmlFor="from_phone" className="text-gray-700">From Phone</Label>
                 <Input
                   id="from_phone"
                   value={settings.from_phone}
                   onChange={(e) => handleInputChange('from_phone', e.target.value)}
-                  className="bg-gray-700 border-gray-600 text-white"
+                  className="bg-white border-gray-300 text-black"
                   placeholder="9915474100"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="from_email" className="text-white">From Email</Label>
+                <Label htmlFor="from_email" className="text-gray-700">From Email</Label>
                 <Input
                   id="from_email"
                   type="email"
                   value={settings.from_email}
                   onChange={(e) => handleInputChange('from_email', e.target.value)}
-                  className="bg-gray-700 border-gray-600 text-white"
+                  className="bg-white border-gray-300 text-black"
                   placeholder="sawadiajanavi@gmail.com"
                 />
               </div>
@@ -176,44 +176,44 @@ export default function SettingsPage() {
         </Card>
 
         {/* Bank Information */}
-        <Card className="bg-gray-800 border-gray-700">
+        <Card className="bg-white border-gray-200 shadow-sm">
           <CardHeader>
-            <CardTitle className="text-white flex items-center">
+            <CardTitle className="text-black flex items-center">
               <CreditCard className="mr-2 h-5 w-5" />
               Bank Information
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="bank_account_name" className="text-white">Bank Account Name</Label>
+              <Label htmlFor="bank_account_name" className="text-gray-700">Bank Account Name</Label>
               <Input
                 id="bank_account_name"
                 value={settings.bank_account_name}
                 onChange={(e) => handleInputChange('bank_account_name', e.target.value)}
-                className="bg-gray-700 border-gray-600 text-white"
+                className="bg-white border-gray-300 text-black"
                 placeholder="Janavi Sawadia"
               />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="bank_account_number" className="text-white">Bank Account Number</Label>
+                <Label htmlFor="bank_account_number" className="text-gray-700">Bank Account Number</Label>
                 <Input
                   id="bank_account_number"
                   value={settings.bank_account_number}
                   onChange={(e) => handleInputChange('bank_account_number', e.target.value)}
-                  className="bg-gray-700 border-gray-600 text-white"
+                  className="bg-white border-gray-300 text-black"
                   placeholder="50100613672509"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="bank_ifsc" className="text-white">Bank IFSC</Label>
+                <Label htmlFor="bank_ifsc" className="text-gray-700">Bank IFSC</Label>
                 <Input
                   id="bank_ifsc"
                   value={settings.bank_ifsc}
                   onChange={(e) => handleInputChange('bank_ifsc', e.target.value)}
-                  className="bg-gray-700 border-gray-600 text-white"
+                  className="bg-white border-gray-300 text-black"
                   placeholder="HDFC0000769"
                 />
               </div>
@@ -222,9 +222,9 @@ export default function SettingsPage() {
         </Card>
 
         {/* UPI Information */}
-        <Card className="bg-gray-800 border-gray-700">
+        <Card className="bg-white border-gray-200 shadow-sm">
           <CardHeader>
-            <CardTitle className="text-white flex items-center">
+            <CardTitle className="text-black flex items-center">
               <Phone className="mr-2 h-5 w-5" />
               UPI Information
             </CardTitle>
@@ -232,36 +232,36 @@ export default function SettingsPage() {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="upi_id" className="text-white">UPI ID</Label>
+                <Label htmlFor="upi_id" className="text-gray-700">UPI ID</Label>
                 <Input
                   id="upi_id"
                   value={settings.upi_id}
                   onChange={(e) => handleInputChange('upi_id', e.target.value)}
-                  className="bg-gray-700 border-gray-600 text-white"
+                  className="bg-white border-gray-300 text-black"
                   placeholder="7241113205@upi"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="upi_phone" className="text-white">UPI Phone</Label>
+                <Label htmlFor="upi_phone" className="text-gray-700">UPI Phone</Label>
                 <Input
                   id="upi_phone"
                   value={settings.upi_phone}
                   onChange={(e) => handleInputChange('upi_phone', e.target.value)}
-                  className="bg-gray-700 border-gray-600 text-white"
+                  className="bg-white border-gray-300 text-black"
                   placeholder="9915474100"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="contact_email" className="text-white">Contact Email</Label>
+              <Label htmlFor="contact_email" className="text-gray-700">Contact Email</Label>
               <Input
                 id="contact_email"
                 type="email"
                 value={settings.contact_email}
                 onChange={(e) => handleInputChange('contact_email', e.target.value)}
-                className="bg-gray-700 border-gray-600 text-white"
+                className="bg-white border-gray-300 text-black"
                 placeholder="sawadiajanavi@gmail.com"
               />
             </div>
@@ -274,7 +274,7 @@ export default function SettingsPage() {
         <Button 
           onClick={handleSave} 
           disabled={saving}
-          className="bg-white text-black hover:bg-gray-200"
+          className="bg-black text-white hover:bg-gray-800"
         >
           <Save className="mr-2 h-4 w-4" />
           {saving ? 'Saving...' : 'Save Settings'}

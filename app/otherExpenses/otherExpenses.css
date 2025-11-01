@@ -1,0 +1,504 @@
+/* Other Expenses Page - White Mode Styles (Muse Ant Design Dashboard) */
+
+/* Layout Container */
+.other-expenses-container {
+  background: #fafafa;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+/* Card Styling - Based on Dashboard */
+.other-expenses-card {
+  box-shadow: 0px 20px 27px #0000000d;
+  border-radius: 12px;
+  background: #fff;
+  border: 0;
+  margin-bottom: 24px;
+}
+
+/* Header Section */
+.other-expenses-header {
+  padding: 24px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.other-expenses-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #262626;
+  margin: 0 0 8px 0;
+  line-height: 1.2;
+}
+
+.other-expenses-description {
+  font-size: 14px;
+  color: #8c8c8c;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* Stats Section */
+.other-expenses-stats {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+  margin-bottom: 24px;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+  border-radius: 12px;
+  color: white;
+  box-shadow: 0px 8px 16px rgba(255, 107, 107, 0.25);
+}
+
+.other-expenses-total {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.other-expenses-total-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0;
+}
+
+.other-expenses-total-amount {
+  font-size: 32px;
+  font-weight: 700;
+  color: white;
+  margin: 0;
+  line-height: 1.2;
+}
+
+/* Add Button */
+.add-expense-button {
+  background: #1890ff;
+  border-color: #1890ff;
+  color: #fff;
+  border-radius: 6px;
+  font-weight: 600;
+  height: 40px;
+  padding: 0 20px;
+  box-shadow: 0px 4px 6px #0000001f;
+  transition: all 0.3s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.add-expense-button:hover {
+  background: #096dd9;
+  border-color: #096dd9;
+  box-shadow: 0px 6px 10px #0000002f;
+  transform: translateY(-1px);
+}
+
+/* Table Styles - Based on Dashboard */
+.other-expenses-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.other-expenses-table thead {
+  background: #fafafa;
+}
+
+.other-expenses-table th {
+  padding: 16px 20px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 12px;
+  color: #8c8c8c;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  border-bottom: 1px solid #f0f0f0;
+  white-space: nowrap;
+}
+
+.other-expenses-table td {
+  padding: 16px 20px;
+  border-bottom: 1px solid #f0f0f0;
+  vertical-align: middle;
+  font-size: 14px;
+  color: #262626;
+}
+
+.other-expenses-table tbody tr:hover {
+  background: #fafafa;
+  transition: background 0.2s ease;
+}
+
+.other-expenses-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Table Content Styles */
+.expense-title {
+  font-weight: 600;
+  color: #262626;
+  font-size: 14px;
+}
+
+.expense-amount {
+  font-weight: 700;
+  color: #ff4d4f;
+  font-size: 14px;
+}
+
+.expense-date {
+  font-size: 14px;
+  color: #595959;
+  font-weight: 500;
+}
+
+.expense-description {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  color: #8c8c8c;
+}
+
+.expense-description-empty {
+  color: #bfbfbf;
+  font-style: italic;
+}
+
+/* Action Buttons */
+.expense-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.action-button {
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 4px;
+  border: 1px solid #d9d9d9;
+  background: white;
+  color: #595959;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.action-button:hover {
+  border-color: #1890ff;
+  color: #1890ff;
+  transform: translateY(-1px);
+}
+
+.action-button.edit-button:hover {
+  background: #e6f7ff;
+}
+
+.action-button.delete-button {
+  border-color: #ff4d4f;
+  color: #ff4d4f;
+}
+
+.action-button.delete-button:hover {
+  background: #fff2f0;
+  border-color: #ff4d4f;
+  color: #ff4d4f;
+}
+
+/* Loading and Empty States */
+.loading-state {
+  text-align: center;
+  padding: 48px 24px;
+  color: #8c8c8c;
+  font-size: 14px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 48px 24px;
+  color: #8c8c8c;
+  font-size: 14px;
+}
+
+/* Dialog Overrides */
+.expense-dialog {
+  border-radius: 12px !important;
+  overflow: hidden;
+}
+
+.expense-dialog .dialog-header {
+  background: #fafafa;
+  padding: 20px 24px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.expense-dialog .dialog-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #262626;
+  margin: 0;
+}
+
+.expense-dialog .dialog-description {
+  font-size: 14px;
+  color: #8c8c8c;
+  margin: 4px 0 0 0;
+}
+
+.expense-dialog .dialog-content {
+  padding: 24px;
+}
+
+.expense-dialog .dialog-footer {
+  padding: 16px 24px;
+  background: #fafafa;
+  border-top: 1px solid #f0f0f0;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+/* Form Styles */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.form-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #262626;
+}
+
+.form-label.required::after {
+  content: ' *';
+  color: #ff4d4f;
+}
+
+.form-input {
+  padding: 8px 12px;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  background: white;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+}
+
+.form-textarea {
+  padding: 8px 12px;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  font-size: 14px;
+  resize: vertical;
+  min-height: 80px;
+  font-family: inherit;
+  transition: all 0.2s ease;
+  background: white;
+}
+
+.form-textarea:focus {
+  outline: none;
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+}
+
+/* Button Variants */
+.button-primary {
+  background: #1890ff;
+  border-color: #1890ff;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid #1890ff;
+}
+
+.button-primary:hover:not(:disabled) {
+  background: #096dd9;
+  border-color: #096dd9;
+  transform: translateY(-1px);
+  box-shadow: 0px 4px 8px rgba(24, 144, 255, 0.3);
+}
+
+.button-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.button-outline {
+  background: white;
+  border: 1px solid #d9d9d9;
+  color: #595959;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.button-outline:hover:not(:disabled) {
+  border-color: #1890ff;
+  color: #1890ff;
+  background: #f0f9ff;
+}
+
+.button-outline:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.button-destructive {
+  background: #ff4d4f;
+  border-color: #ff4d4f;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid #ff4d4f;
+}
+
+.button-destructive:hover:not(:disabled) {
+  background: #ff7875;
+  border-color: #ff7875;
+  transform: translateY(-1px);
+  box-shadow: 0px 4px 8px rgba(255, 77, 79, 0.3);
+}
+
+.button-destructive:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Table Caption */
+.table-caption {
+  font-size: 13px;
+  color: #8c8c8c;
+  font-weight: 500;
+  caption-side: bottom;
+  padding: 12px 20px;
+  text-align: center;
+  background: #fafafa;
+  border-top: 1px solid #f0f0f0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .other-expenses-container {
+    padding: 16px;
+  }
+  
+  .other-expenses-stats {
+    flex-direction: column;
+    gap: 16px;
+    text-align: center;
+  }
+  
+  .other-expenses-table th,
+  .other-expenses-table td {
+    padding: 12px 16px;
+    font-size: 12px;
+  }
+  
+  .expense-actions {
+    flex-direction: column;
+    gap: 4px;
+  }
+  
+  .expense-description {
+    max-width: 120px;
+  }
+  
+  .other-expenses-total-amount {
+    font-size: 24px;
+  }
+  
+  .dialog-content {
+    padding: 16px !important;
+  }
+  
+  .form-group {
+    margin-bottom: 16px;
+  }
+}
+
+@media (max-width: 576px) {
+  .other-expenses-table {
+    font-size: 11px;
+  }
+  
+  .other-expenses-table th,
+  .other-expenses-table td {
+    padding: 8px 12px;
+  }
+  
+  .expense-description {
+    max-width: 80px;
+  }
+  
+  .action-button {
+    padding: 2px 8px;
+    font-size: 11px;
+  }
+}
+
+/* Focus and accessibility */
+.form-input:focus,
+.form-textarea:focus,
+.button-primary:focus,
+.button-outline:focus,
+.button-destructive:focus,
+.action-button:focus {
+  outline: 2px solid #1890ff;
+  outline-offset: 2px;
+}
+
+/* Animation for loading states */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.other-expenses-card {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Hover animations */
+.other-expenses-table tbody tr {
+  transition: all 0.2s ease;
+}
+
+.expense-actions .action-button {
+  transform: translateY(0);
+  transition: all 0.2s ease;
+}
+
+.expense-actions .action-button:hover {
+  transform: translateY(-1px);
+}

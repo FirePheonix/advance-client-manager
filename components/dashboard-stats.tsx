@@ -202,21 +202,21 @@ export function DashboardStats() {
       <div className="space-y-6">
         {/* Period Selector Skeleton */}
         <div className="flex items-center justify-between">
-          <div className="h-6 bg-gray-700 rounded w-48 animate-pulse"></div>
+          <div className="h-6 bg-gray-300 rounded w-48 animate-pulse"></div>
           <div className="flex space-x-4">
-            <div className="h-10 bg-gray-700 rounded w-20 animate-pulse"></div>
-            <div className="h-10 bg-gray-700 rounded w-32 animate-pulse"></div>
+            <div className="h-10 bg-gray-300 rounded w-20 animate-pulse"></div>
+            <div className="h-10 bg-gray-300 rounded w-32 animate-pulse"></div>
           </div>
         </div>
         
         {/* Stats Cards Skeleton */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
           {[1, 2, 3, 4, 5].map((i) => (
-            <Card key={i} className="bg-black border-gray-800">
+            <Card key={i} className="bg-white border-gray-200 shadow-sm">
               <CardContent className="p-6">
                 <div className="animate-pulse">
-                  <div className="h-4 bg-gray-700 rounded w-3/4 mb-2"></div>
-                  <div className="h-8 bg-gray-700 rounded w-1/2"></div>
+                  <div className="h-4 bg-gray-300 rounded w-3/4 mb-2"></div>
+                  <div className="h-8 bg-gray-300 rounded w-1/2"></div>
                 </div>
               </CardContent>
             </Card>
@@ -292,7 +292,7 @@ export function DashboardStats() {
               size="sm"
               variant={viewMode === 'month' ? 'default' : 'outline'}
               onClick={() => setViewMode('month')}
-              className={viewMode === 'month' ? 'bg-white text-black' : 'border-gray-600 text-gray-300'}
+              className={viewMode === 'month' ? 'bg-blue-600 text-white' : 'border-gray-300 text-gray-700 bg-white hover:bg-gray-50'}
             >
               Month
             </Button>
@@ -300,7 +300,7 @@ export function DashboardStats() {
               size="sm"
               variant={viewMode === 'year' ? 'default' : 'outline'}
               onClick={() => setViewMode('year')}
-              className={viewMode === 'year' ? 'bg-white text-black' : 'border-gray-600 text-gray-300'}
+              className={viewMode === 'year' ? 'bg-blue-600 text-white' : 'border-gray-300 text-gray-700 bg-white hover:bg-gray-50'}
             >
               Year
             </Button>
@@ -311,7 +311,7 @@ export function DashboardStats() {
             value={selectedYear.toString()}
             onValueChange={(value) => setSelectedYear(parseInt(value))}
           >
-            <SelectTrigger className="w-24 bg-gray-800 border-gray-600 text-white">
+            <SelectTrigger className="w-24 bg-white border-gray-300 text-gray-900">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -329,7 +329,7 @@ export function DashboardStats() {
               value={selectedMonth.toString()}
               onValueChange={(value) => setSelectedMonth(parseInt(value))}
             >
-              <SelectTrigger className="w-32 bg-gray-800 border-gray-600 text-white">
+              <SelectTrigger className="w-32 bg-white border-gray-300 text-gray-900">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -348,9 +348,9 @@ export function DashboardStats() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
         <TooltipProvider>
           {statsData.map((stat) => (
-            <Card key={stat.title} className="bg-black border-gray-800">
+            <Card key={stat.title} className="bg-white border-gray-200 shadow-sm">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-gray-300">{stat.title}</CardTitle>
+                <CardTitle className="text-sm font-medium text-gray-700">{stat.title}</CardTitle>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <stat.icon className={`h-4 w-4 ${stat.color}`} />
@@ -361,8 +361,8 @@ export function DashboardStats() {
                 </Tooltip>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-white">{stat.value}</div>
-                <p className="text-xs text-gray-400 mt-1" title={stat.description}>
+                <div className="text-2xl font-bold text-gray-900">{stat.value}</div>
+                <p className="text-xs text-gray-600 mt-1" title={stat.description}>
                   {stat.change}
                 </p>
               </CardContent>

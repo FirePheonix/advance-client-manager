@@ -18,6 +18,7 @@ import {
   DialogTitle, 
   DialogFooter 
 } from "@/components/ui/dialog"
+import "./clients.css"
 import { 
   AlertDialog, 
   AlertDialogAction, 
@@ -229,60 +230,63 @@ export default function ClientsPage() {
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold text-white">Clients</h1>
-            <p className="text-gray-400 mt-2">Manage your client relationships and projects</p>
+      <div className="clients-container">
+        <div className="clients-header">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="clients-title">Clients</h1>
+              <p className="clients-subtitle">Manage your client relationships and projects</p>
+            </div>
           </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <Card key={i} className="bg-gray-800 border-gray-700">
-              <CardContent className="p-6">
-                <div className="animate-pulse space-y-4">
-                  <div className="h-6 bg-gray-700 rounded w-3/4"></div>
-                  <div className="h-4 bg-gray-700 rounded w-1/2"></div>
-                  <div className="h-4 bg-gray-700 rounded w-2/3"></div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+        <div className="space-y-6 px-6">
+          <div className="clients-grid">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <Card key={i} className="client-card-skeleton">
+                <CardContent className="p-6">
+                  <div className="space-y-4">
+                    <div className="skeleton-line title"></div>
+                    <div className="skeleton-line subtitle"></div>
+                    <div className="skeleton-line content"></div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-white">
-            {viewMode === 'active' ? 'Active Clients' : 'Archived Clients'}
-          </h1>
-          <p className="text-gray-400 mt-2">
-            {viewMode === 'active' 
-              ? 'Manage your active client relationships and projects' 
-              : 'View and manage archived clients'
-            }
-          </p>
-        </div>
-        <div className="flex items-center space-x-4">
+    <div className="clients-container">
+      <div className="clients-header">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="clients-title">
+              {viewMode === 'active' ? 'Active Clients' : 'Archived Clients'}
+            </h1>
+            <p className="clients-subtitle">
+              {viewMode === 'active' 
+                ? 'Manage your active client relationships and projects' 
+                : 'View and manage archived clients'
+              }
+            </p>
+          </div>
+          <div className="flex items-center space-x-4">
           {/* View Mode Toggle */}
           <div className="flex space-x-2">
             <Button
               size="sm"
-              variant={viewMode === 'active' ? 'default' : 'outline'}
               onClick={() => setViewMode('active')}
-              className={viewMode === 'active' ? 'bg-white text-black' : 'border-gray-600 text-gray-300'}
+              className={`clients-tab ${viewMode === 'active' ? 'active' : ''}`}
             >
               Active
             </Button>
             <Button
               size="sm"
-              variant={viewMode === 'archived' ? 'default' : 'outline'}
               onClick={() => setViewMode('archived')}
-              className={viewMode === 'archived' ? 'bg-white text-black' : 'border-gray-600 text-gray-300'}
+              className={`clients-tab ${viewMode === 'archived' ? 'active' : ''}`}
             >
               Archived
             </Button>
@@ -306,12 +310,12 @@ export default function ClientsPage() {
                 }}
                 variant="outline"
                 size="sm"
-                className="border-orange-600 text-orange-400 hover:bg-orange-900/20"
+                className="btn-outline border-orange-500 text-orange-500 hover:bg-orange-50 hover:border-orange-600"
               >
                 <Calendar className="mr-2 h-4 w-4" />
                 Update Tiers
               </Button>
-              <Button onClick={() => setShowAddDialog(true)} className="bg-white text-black hover:bg-gray-200">
+              <Button onClick={() => setShowAddDialog(true)} className="clients-add-btn">
                 <Plus className="mr-2 h-4 w-4" />
                 Add New Client
               </Button>
@@ -319,89 +323,79 @@ export default function ClientsPage() {
           )}
         </div>
       </div>
-
-      <div className="flex items-center space-x-4">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-          <Input
-            placeholder="Search clients..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 bg-gray-800 border-gray-700 text-white placeholder-gray-400"
-          />
+      
+      <div className="space-y-6 px-6">
+        <div className="clients-controls">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Input
+              placeholder="Search clients..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="clients-search pl-10"
+            />
+          </div>
         </div>
-      </div>
 
-      {/* Show info message for archived clients */}
-      {viewMode === 'archived' && (
-        <div className="bg-amber-900/20 border border-amber-700 rounded-lg p-4">
-          <h3 className="text-amber-400 font-medium mb-2">Archived Clients</h3>
-          <p className="text-amber-300 text-sm">
-            These clients have been archived and won't appear in upcoming payments or active client lists. 
-            Their data is preserved but their next payment date is set far in the future. 
-            You can unarchive them to restore normal functionality.
-          </p>
-        </div>
-      )}
+        {/* Show info message for archived clients */}
+        {viewMode === 'archived' && (
+          <div className="archive-banner">
+            <div className="archive-banner-content">
+              <Archive className="archive-banner-icon" />
+              <span className="archive-banner-title">Archived Clients</span>
+            </div>
+            <p className="archive-banner-text">
+              These clients have been archived and won't appear in upcoming payments or active client lists. 
+              Their data is preserved but their next payment date is set far in the future. 
+              You can unarchive them to restore normal functionality.
+            </p>
+          </div>
+        )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="clients-grid">
         {filteredClients.map((client) => (
-          <Card key={client.id} className="bg-gray-800 border-gray-700 group relative">
+          <Card key={client.id} className="client-card group relative">
             <CardHeader>
-              <div className="flex justify-between items-start">
+              <div className="client-card-header">
                 <Link href={`/clients/${client.id}`} className="flex-1">
-                  <CardTitle className="text-white cursor-pointer hover:text-blue-400 transition-colors">
+                  <CardTitle className="client-card-title cursor-pointer hover:text-blue-400 transition-colors">
                     {client.name}
                   </CardTitle>
+                  <p className="client-card-email">{client.email}</p>
                 </Link>
                 <div className="flex items-center space-x-2">
-                  <Badge
-                    variant={
-                      client.status === "archived" 
-                        ? "secondary" 
-                        : client.status === "active" 
-                          ? "default" 
-                          : "secondary"
-                    }
-                    className={
-                      client.status === "archived"
-                        ? "bg-gray-600"
-                        : client.status === "active" 
-                          ? "bg-green-600" 
-                          : "bg-yellow-600"
-                    }
-                  >
+                  <div className={`client-card-status ${client.status}`}>
                     {client.status}
-                  </Badge>
+                  </div>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-8 w-8 p-0 text-gray-400 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="dropdown-trigger h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
                       >
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-48">
-                      <DropdownMenuItem onClick={() => openRenameDialog(client)}>
+                    <DropdownMenuContent align="end" className="dropdown-menu-content w-48">
+                      <DropdownMenuItem onClick={() => openRenameDialog(client)} className="dropdown-menu-item">
                         <Edit className="mr-2 h-4 w-4" />
                         Rename
                       </DropdownMenuItem>
                       {viewMode === 'active' ? (
-                        <DropdownMenuItem onClick={() => openArchiveDialog(client)}>
+                        <DropdownMenuItem onClick={() => openArchiveDialog(client)} className="dropdown-menu-item">
                           <Archive className="mr-2 h-4 w-4" />
                           Archive
                         </DropdownMenuItem>
                       ) : (
-                        <DropdownMenuItem onClick={() => handleUnarchiveClient(client.id)}>
+                        <DropdownMenuItem onClick={() => handleUnarchiveClient(client.id)} className="dropdown-menu-item">
                           <ArchiveRestore className="mr-2 h-4 w-4" />
                           Unarchive
                         </DropdownMenuItem>
                       )}
                       <DropdownMenuItem 
                         onClick={() => openDeleteDialog(client)}
-                        className="text-red-600 focus:text-red-600"
+                        className="dropdown-menu-item text-red-600"
                       >
                         <Trash2 className="mr-2 h-4 w-4" />
                         Delete
@@ -413,76 +407,61 @@ export default function ClientsPage() {
             </CardHeader>
             <Link href={`/clients/${client.id}`}>
               <CardContent className="space-y-4 cursor-pointer">
-                <div className="space-y-2">
-                  <div className="flex items-center text-sm text-gray-300">
-                    <Mail className="mr-2 h-4 w-4" />
-                    {client.email}
+                {client.phone && (
+                  <div className="client-card-info">
+                    <Phone />
+                    {client.phone}
                   </div>
-                  {client.phone && (
-                    <div className="flex items-center text-sm text-gray-300">
-                      <Phone className="mr-2 h-4 w-4" />
-                      {client.phone}
-                    </div>
-                  )}
+                )}
+                
+                <div className="client-card-rate">
+                  {client.payment_type === "monthly"
+                    ? `₹${getTierDisplayInfo(client).paymentRate.toLocaleString()}/month`
+                    : client.payment_type === "weekly"
+                      ? `₹${getTierDisplayInfo(client).paymentRate.toLocaleString()}/week`
+                      : "Per-post pricing"}
                 </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center text-sm text-gray-300">
-                    <DollarSign className="mr-2 h-4 w-4" />
-                    {client.payment_type === "monthly"
-                      ? `₹${getTierDisplayInfo(client).paymentRate.toLocaleString()}/month`
-                      : client.payment_type === "weekly"
-                        ? `₹${getTierDisplayInfo(client).paymentRate.toLocaleString()}/week`
-                        : "Per-post pricing"}
+                
+                {client.next_payment && viewMode === 'active' && (
+                  <div className="client-card-info">
+                    <Calendar />
+                    Next payment: {client.next_payment}
                   </div>
-                  {client.next_payment && viewMode === 'active' && (
-                    <div className="flex items-center text-sm text-gray-300">
-                      <Calendar className="mr-2 h-4 w-4" />
-                      Next payment: {client.next_payment}
-                    </div>
-                  )}
-                </div>
-
-                {/* Tier Information */}
-                <div className="flex items-center justify-between">
-                  <Badge 
-                    className={`${getTierDisplayInfo(client).badgeColor} text-white text-xs`}
-                  >
-                    {getTierDisplayInfo(client).status}
-                  </Badge>
-                  {client.tiered_payments && client.tiered_payments.length > 0 && (
-                    <span className="text-xs text-gray-400">
-                      {getCurrentTierInfo(client.tiered_payments, client.created_at).isComplete 
-                        ? "All tiers completed" 
-                        : `${client.tiered_payments.length} tier${client.tiered_payments.length > 1 ? 's' : ''} total`
-                      }
-                    </span>
-                  )}
-                </div>
-
-                <div className="flex flex-wrap gap-1">
+                )}
+                
+                <div className="client-card-services">
                   {Object.entries(client.services).map(([service, price]) => (
-                    <Badge key={service} variant="outline" className="text-xs border-gray-600 text-gray-300">
+                    <div key={service} className="client-service-badge">
                       {service} (₹{price})
-                    </Badge>
+                    </div>
                   ))}
                 </div>
+
+                {client.tiered_payments && client.tiered_payments.length > 0 && (
+                  <div className="client-card-info">
+                    <span className="text-xs text-gray-400">
+                      {client.tiered_payments.length} tier{client.tiered_payments.length > 1 ? 's' : ''} total
+                    </span>
+                  </div>
+                )}
               </CardContent>
             </Link>
           </Card>
         ))}
       </div>
 
-      {filteredClients.length === 0 && (
-        <div className="text-center py-8">
-          <p className="text-gray-400">
-            {viewMode === 'active' 
-              ? 'No active clients found. Add a new client to get started.' 
-              : 'No archived clients found.'
-            }
-          </p>
-        </div>
-      )}
+        {filteredClients.length === 0 && (
+          <div className="text-center py-8">
+            <p className="text-gray-400">
+              {viewMode === 'active' 
+                ? 'No active clients found. Add a new client to get started.' 
+                : 'No archived clients found.'
+              }
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
 
       {/* Add Client Dialog */}
       <AddClientDialog 
@@ -493,16 +472,16 @@ export default function ClientsPage() {
 
       {/* Rename Client Dialog */}
       <Dialog open={showRenameDialog} onOpenChange={setShowRenameDialog}>
-        <DialogContent className="bg-gray-800 border-gray-700">
+        <DialogContent className="dialog-content">
           <DialogHeader>
-            <DialogTitle className="text-white">Rename Client</DialogTitle>
+            <DialogTitle>Rename Client</DialogTitle>
           </DialogHeader>
           <div className="py-4">
             <Input
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
               placeholder="Enter new client name"
-              className="bg-gray-700 border-gray-600 text-white"
+              className="form-input"
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   handleRenameClient()
@@ -514,14 +493,14 @@ export default function ClientsPage() {
             <Button
               variant="outline"
               onClick={() => setShowRenameDialog(false)}
-              className="border-gray-600 text-gray-300"
+              className="btn-outline"
             >
               Cancel
             </Button>
             <Button
               onClick={handleRenameClient}
               disabled={!newName.trim() || newName === selectedClient?.name}
-              className="bg-white text-black hover:bg-gray-200"
+              className="btn-primary"
             >
               Rename
             </Button>
@@ -531,10 +510,10 @@ export default function ClientsPage() {
 
       {/* Archive Client Dialog */}
       <AlertDialog open={showArchiveDialog} onOpenChange={setShowArchiveDialog}>
-        <AlertDialogContent className="bg-gray-800 border-gray-700">
+        <AlertDialogContent className="dialog-content">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">Archive Client</AlertDialogTitle>
-            <AlertDialogDescription className="text-gray-300">
+            <AlertDialogTitle>Archive Client</AlertDialogTitle>
+            <AlertDialogDescription className="dialog-description">
               Are you sure you want to archive "{selectedClient?.name}"? 
               <br /><br />
               <strong>What happens when you archive a client:</strong>
@@ -547,7 +526,7 @@ export default function ClientsPage() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="border-gray-600 text-gray-300 hover:bg-gray-700">
+            <AlertDialogCancel className="btn-outline">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
@@ -562,18 +541,18 @@ export default function ClientsPage() {
 
       {/* Delete Client Dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent className="bg-gray-800 border-gray-700">
+        <AlertDialogContent className="dialog-content">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">Delete Client</AlertDialogTitle>
-            <AlertDialogDescription className="text-gray-300">
+            <AlertDialogTitle>Delete Client</AlertDialogTitle>
+            <AlertDialogDescription className="dialog-description">
               Are you sure you want to delete "{selectedClient?.name}"? This action cannot be undone.
               All associated tasks and payments will also be removed.
               <br /><br />
-              <strong className="text-red-400">Consider archiving instead if you want to preserve data.</strong>
+              <strong className="text-red-500">Consider archiving instead if you want to preserve data.</strong>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="border-gray-600 text-gray-300 hover:bg-gray-700">
+            <AlertDialogCancel className="btn-outline">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction

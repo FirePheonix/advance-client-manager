@@ -1,0 +1,544 @@
+/* Billing Styles - Adapted from Muse Ant Design Dashboard */
+
+.layout-content {
+  padding: 16px;
+}
+
+.mb-24 {
+  margin-bottom: 24px;
+}
+
+.h-full {
+  height: 100%;
+}
+
+/* Credit Card Styles */
+.card-credit {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  color: #fff;
+}
+
+.card-credit .ant-card-head {
+  border-bottom: none;
+  padding: 24px 24px 0;
+}
+
+.card-credit .ant-card-head-title {
+  color: #fff;
+  padding: 0;
+}
+
+.card-credit .ant-card-body {
+  padding: 24px;
+}
+
+.card-number {
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  margin: 20px 0;
+  color: #fff;
+}
+
+.card-footer {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-top: 30px;
+}
+
+.card-footer p {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 12px;
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+.card-footer h6 {
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.mr-30 {
+  margin-right: 30px;
+}
+
+.ml-auto {
+  margin-left: auto;
+}
+
+.col-logo img {
+  height: 32px;
+  width: auto;
+}
+
+/* Widget Cards */
+.widget-2 {
+  box-shadow: 0px 20px 27px #0000000d;
+  border-radius: 12px;
+  border: none;
+}
+
+.widget-2 .ant-statistic-title {
+  margin-bottom: 0;
+}
+
+.widget-2 .icon {
+  width: 48px;
+  height: 48px;
+  text-align: center;
+  background: #1890ff;
+  color: #fff;
+  border-radius: 0.5rem;
+  margin-bottom: 16px;
+  line-height: 55px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.widget-2 .icon img {
+  width: 24px;
+  height: 24px;
+  filter: brightness(0) invert(1);
+}
+
+.widget-2 h6 {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 8px 0 4px;
+  color: #141414;
+}
+
+.widget-2 p {
+  color: #8c8c8c;
+  font-size: 12px;
+  margin: 0;
+  font-weight: 600;
+}
+
+/* Header Solid */
+.header-solid .ant-card-head {
+  border-bottom: 1px solid #0000000d;
+  background: transparent;
+}
+
+.font-semibold {
+  font-weight: 600;
+}
+
+.m-0 {
+  margin: 0;
+}
+
+.d-flex {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Payment Method Cards */
+.ant-card-p-0 .ant-card-body {
+  padding: 0;
+}
+
+.payment-method-card {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 20px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.payment-method-card img {
+  height: 32px;
+  width: auto;
+}
+
+.payment-method-card .card-number {
+  font-size: 14px;
+  font-weight: 600;
+  color: #495057;
+  margin: 0;
+  flex: 1;
+  margin-left: 16px;
+}
+
+.ant-edit-link {
+  color: #8c8c8c;
+  padding: 0;
+}
+
+.ant-edit-link:hover {
+  color: #1890ff;
+}
+
+/* Invoice Card */
+.ant-invoice-card .ant-list-item {
+  padding: 16px 0;
+  border-bottom: 1px solid #0000000d;
+}
+
+.ant-invoice-card .ant-list-item:last-child {
+  border-bottom: none;
+}
+
+.invoice-list .ant-list-item-meta-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #141414;
+}
+
+.invoice-list .ant-list-item-meta-description {
+  color: #8c8c8c;
+  font-size: 12px;
+}
+
+.invoice-list .amount {
+  font-size: 14px;
+  font-weight: 600;
+  color: #52c41a;
+}
+
+.invoice-list .ant-btn {
+  color: #8c8c8c;
+  font-size: 12px;
+  padding: 0;
+  height: auto;
+}
+
+.invoice-list .ant-btn:hover {
+  color: #1890ff;
+}
+
+/* Billing Info Cards */
+.card-billing-info {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.card-billing-info .ant-card-body {
+  padding: 20px;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.col-info {
+  flex: 1;
+}
+
+.col-info .ant-descriptions-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #141414;
+  margin-bottom: 12px;
+}
+
+.col-info .ant-descriptions-item-label {
+  color: #8c8c8c;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.col-info .ant-descriptions-item-content {
+  color: #495057;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.col-action {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-left: 20px;
+}
+
+.col-action .ant-btn {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 0;
+  height: auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.darkbtn {
+  color: #495057;
+}
+
+.darkbtn:hover {
+  color: #1890ff;
+}
+
+.fill-danger {
+  fill: #f5222d;
+}
+
+.fill-gray-7 {
+  fill: #8c8c8c;
+}
+
+/* Transactions List */
+.ant-list-yes .ant-list-header {
+  padding: 16px 0 8px;
+  border-bottom: none;
+}
+
+.ant-list-yes .ant-list-header h6 {
+  color: #8c8c8c;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  margin: 0;
+}
+
+.card-header-date {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #8c8c8c;
+  font-size: 12px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.card-header-date span {
+  color: #495057;
+}
+
+.fill-muted {
+  fill: #8c8c8c;
+}
+
+.transactions-list .ant-list-item {
+  padding: 12px 0;
+  border-bottom: 1px solid #0000000d;
+}
+
+.transactions-list .ant-list-item:last-child {
+  border-bottom: none;
+}
+
+.transactions-list .ant-list-item-meta-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #141414;
+}
+
+.transactions-list .ant-list-item-meta-description {
+  color: #8c8c8c;
+  font-size: 12px;
+}
+
+.transactions-list .amount {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.text-success {
+  color: #52c41a;
+}
+
+.text-warning {
+  color: #faad14;
+}
+
+.text-danger {
+  color: #f5222d;
+}
+
+.text-fill {
+  background: #52c41a;
+  color: #fff;
+}
+
+.text-light-danger {
+  background: #f5222d;
+  color: #fff;
+}
+
+.text-warning-b {
+  color: #faad14;
+}
+
+.ant-newest .ant-avatar {
+  background: #52c41a;
+}
+
+.yesterday {
+  margin-top: 20px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .card-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  
+  .mr-30 {
+    margin-right: 0;
+    margin-bottom: 12px;
+  }
+  
+  .ml-auto {
+    margin-left: 0;
+  }
+  
+  .payment-method-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .payment-method-card .card-number {
+    margin-left: 0;
+  }
+  
+  .card-billing-info .ant-card-body {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .col-action {
+    margin-left: 0;
+    flex-direction: row;
+  }
+}
+
+@media (max-width: 576px) {
+  .d-flex {
+    justify-content: flex-start;
+    margin-top: 12px;
+  }
+}
+
+/* Additional styles for expense management */
+.fill-danger {
+  color: #ff4d4f !important;
+}
+
+.text-fill {
+  background-color: #ff4d4f;
+  color: white;
+}
+
+.card-header-date {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #8c8c8c;
+  font-size: 12px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.card-header-date svg {
+  margin-right: 4px;
+}
+
+.transactions-list .ant-list-item-action {
+  margin-left: 8px;
+}
+
+.transactions-list .ant-list-item-action > li {
+  padding: 0 2px;
+}
+
+.transactions-list .ant-btn-link {
+  padding: 4px;
+  height: auto;
+  line-height: 1;
+}
+
+/* Expenses card with fixed height and scroll */
+.expenses-card {
+  height: 500px !important;
+  display: flex;
+  flex-direction: column;
+}
+
+.expenses-card .ant-card-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.expenses-scroll-container {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 8px;
+  margin-bottom: 12px;
+}
+
+.expenses-scroll-container::-webkit-scrollbar {
+  width: 4px;
+}
+
+.expenses-scroll-container::-webkit-scrollbar-track {
+  background: #f5f5f5;
+  border-radius: 2px;
+}
+
+.expenses-scroll-container::-webkit-scrollbar-thumb {
+  background: #d9d9d9;
+  border-radius: 2px;
+}
+
+.expenses-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: #bfbfbf;
+}
+
+.expenses-list-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #8c8c8c;
+}
+
+.expenses-footer {
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid #f0f0f0;
+  flex-shrink: 0;
+}
+
+/* Modal form styling */
+.ant-modal .ant-form-item-label > label {
+  font-weight: 600;
+}
+
+.ant-modal .ant-input-prefix {
+  color: #8c8c8c;
+}
+
+/* Responsive adjustments for expenses */
+@media (max-width: 768px) {
+  .card-header-date span {
+    display: none;
+  }
+  
+  .transactions-list .ant-list-item-meta-title {
+    font-size: 12px;
+  }
+  
+  .transactions-list .ant-list-item-meta-description {
+    font-size: 11px;
+  }
+}

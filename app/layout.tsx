@@ -21,15 +21,15 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className="dark">
-      <body className={`${inter.className} bg-black text-white`}>
+    <html lang="en" className="">
+      <body className={`${inter.className} bg-gray-50 text-gray-900`}>
         <ErrorSuppressor />
         <AutomaticTierUpdatesProvider>
           <div className="flex h-screen">
             <Sidebar />
             <div className="flex-1 flex flex-col overflow-hidden">
               <Header />
-              <main className="flex-1 overflow-auto p-6 bg-black">{children}</main>
+              <main className="flex-1 overflow-auto p-6 bg-gray-50">{children}</main>
             </div>
           </div>
         </AutomaticTierUpdatesProvider>

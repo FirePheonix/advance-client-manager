@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input"
 import { getPayments, getClients, checkPaymentExists, calculateTotalPaymentRate } from "@/lib/database"
 import { Badge } from "@/components/ui/badge"
+import './timeline.css'
 
 interface TimelinePayment {
   id: string
@@ -240,23 +241,21 @@ export default function TimelinePage() {
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold text-white">Revenue Timeline</h1>
-            <p className="text-gray-400 mt-2">Track revenue flow across all clients over time</p>
+      <div className="timeline-loading-container">
+        <div className="timeline-loading-header">
+          <div className="timeline-loading-title">
+            <h1>Revenue Timeline</h1>
+            <p>Track revenue flow across all clients over time</p>
           </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="timeline-loading-grid">
           {[1, 2, 3, 4].map((i) => (
-            <Card key={i} className="bg-black border-gray-800">
-              <CardContent className="p-6">
-                <div className="animate-pulse">
-                  <div className="h-4 bg-gray-700 rounded w-3/4 mb-2"></div>
-                  <div className="h-8 bg-gray-700 rounded w-1/2"></div>
-                </div>
-              </CardContent>
-            </Card>
+            <div key={i} className="timeline-loading-card">
+              <div className="timeline-loading-skeleton">
+                <div className="timeline-loading-line-wide"></div>
+                <div className="timeline-loading-line-narrow"></div>
+              </div>
+            </div>
           ))}
         </div>
       </div>
@@ -264,115 +263,106 @@ export default function TimelinePage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-white">Revenue Timeline</h1>
-          <p className="text-gray-400 mt-2">Track revenue flow across all clients over time</p>
+    <div className="timeline-container">
+      <div className="timeline-header">
+        <div className="timeline-title-section">
+          <h1>Revenue Timeline</h1>
+          <p>Track revenue flow across all clients over time</p>
         </div>
-        <Button className="bg-white text-black hover:bg-gray-200">
-          <Filter className="mr-2 h-4 w-4" />
+        <button className="export-button">
+          <Filter className="h-4 w-4" />
           Export Chart
-        </Button>
+        </button>
       </div>
 
       {/* Summary Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="bg-black border-gray-800">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-300">Total Revenue</CardTitle>
-            <DollarSign className="h-4 w-4 text-green-400" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-white">₹{totalRevenue.toLocaleString()}</div>
-            <p className="text-xs text-green-400 mt-1">Completed payments</p>
-          </CardContent>
-        </Card>
+      <div className="timeline-stats-grid">
+        <div className="timeline-stats-card">
+          <div className="timeline-stats-header">
+            <h3 className="timeline-stats-title">Total Revenue</h3>
+            <DollarSign className="timeline-stats-icon" />
+          </div>
+          <div className="timeline-stats-value">₹{totalRevenue.toLocaleString()}</div>
+          <p className="timeline-stats-subtitle completed">Completed payments</p>
+        </div>
 
-        <Card className="bg-black border-gray-800">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-300">Pending Revenue</CardTitle>
-            <Calendar className="h-4 w-4 text-yellow-400" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-white">₹{pendingAmount.toLocaleString()}</div>
-            <p className="text-xs text-yellow-400 mt-1">Awaiting payment</p>
-          </CardContent>
-        </Card>
+        <div className="timeline-stats-card">
+          <div className="timeline-stats-header">
+            <h3 className="timeline-stats-title">Pending Revenue</h3>
+            <Calendar className="timeline-stats-icon pending" />
+          </div>
+          <div className="timeline-stats-value">₹{pendingAmount.toLocaleString()}</div>
+          <p className="timeline-stats-subtitle pending">Awaiting payment</p>
+        </div>
 
-        <Card className="bg-black border-gray-800">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-300">Overdue Amount</CardTitle>
-            <TrendingUp className="h-4 w-4 text-red-400" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-white">₹{overdueAmount.toLocaleString()}</div>
-            <p className="text-xs text-red-400 mt-1">Overdue payments</p>
-          </CardContent>
-        </Card>
+        <div className="timeline-stats-card">
+          <div className="timeline-stats-header">
+            <h3 className="timeline-stats-title">Overdue Amount</h3>
+            <TrendingUp className="timeline-stats-icon overdue" />
+          </div>
+          <div className="timeline-stats-value">₹{overdueAmount.toLocaleString()}</div>
+          <p className="timeline-stats-subtitle overdue">Overdue payments</p>
+        </div>
 
-        <Card className="bg-black border-gray-800">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-300">Active Clients</CardTitle>
-            <Users className="h-4 w-4 text-purple-400" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-white">{uniqueClients.length}</div>
-            <p className="text-xs text-purple-400 mt-1">Total clients</p>
-          </CardContent>
-        </Card>
+        <div className="timeline-stats-card">
+          <div className="timeline-stats-header">
+            <h3 className="timeline-stats-title">Active Clients</h3>
+            <Users className="timeline-stats-icon clients" />
+          </div>
+          <div className="timeline-stats-value">{uniqueClients.length}</div>
+          <p className="timeline-stats-subtitle clients">Total clients</p>
+        </div>
       </div>
 
       {/* Filters */}
-      <div className="flex items-center space-x-4 flex-wrap gap-4">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-          <Input
+      <div className="timeline-filters">
+        <div className="timeline-search-container">
+          <Search className="timeline-search-icon" />
+          <input
+            type="text"
             placeholder="Search by client, type, or status..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 bg-black border-gray-800 text-white placeholder-gray-400"
+            className="timeline-search-input"
           />
         </div>
 
-        <Select value={clientFilter} onValueChange={setClientFilter}>
-          <SelectTrigger className="w-48 bg-black border-gray-800 text-white">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent className="bg-black border-gray-800">
-            <SelectItem value="all">All Clients</SelectItem>
-            {uniqueClients.map((client) => (
-              <SelectItem key={client} value={client}>
-                {client}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <select 
+          value={clientFilter} 
+          onChange={(e) => setClientFilter(e.target.value)}
+          className="timeline-select"
+        >
+          <option value="all">All Clients</option>
+          {uniqueClients.map((client) => (
+            <option key={client} value={client}>
+              {client}
+            </option>
+          ))}
+        </select>
 
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-40 bg-black border-gray-800 text-white">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent className="bg-black border-gray-800">
-            <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="completed">Completed</SelectItem>
-            <SelectItem value="pending">Pending</SelectItem>
-            <SelectItem value="overdue">Overdue</SelectItem>
-          </SelectContent>
-        </Select>
+        <select 
+          value={statusFilter} 
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="timeline-select"
+        >
+          <option value="all">All Status</option>
+          <option value="completed">Completed</option>
+          <option value="pending">Pending</option>
+          <option value="overdue">Overdue</option>
+        </select>
       </div>
 
       {/* Chart */}
-      <Card className="bg-black border-gray-800">
-        <CardHeader>
-          <CardTitle className="text-white flex items-center">
-            <TrendingUp className="mr-2 h-5 w-5" />
+      <div className="timeline-chart-card">
+        <div className="timeline-chart-header">
+          <h2 className="timeline-chart-title">
+            <TrendingUp className="h-5 w-5" />
             Revenue Timeline Chart ({filteredData.length} payments)
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
+          </h2>
+        </div>
+        <div className="timeline-chart-content">
           <div className="relative">
-            <svg width={chartWidth} height={chartHeight} className="bg-gray-900 rounded-lg">
+            <svg width={chartWidth} height={chartHeight} className="timeline-chart-svg">
               {/* Grid lines */}
               {yGridLines.map((line, i) => (
                 <g key={i}>
@@ -381,11 +371,11 @@ export default function TimelinePage() {
                     y1={line.y}
                     x2={chartWidth - padding.right}
                     y2={line.y}
-                    stroke="#374151"
+                    stroke="#d9d9d9"
                     strokeWidth="1"
                     strokeDasharray="2,2"
                   />
-                  <text x={padding.left - 10} y={line.y + 4} fill="#9CA3AF" fontSize="12" textAnchor="end">
+                  <text x={padding.left - 10} y={line.y + 4} fill="#8c8c8c" fontSize="12" textAnchor="end">
                     {formatCurrency(line.value)}
                   </text>
                 </g>
@@ -397,7 +387,7 @@ export default function TimelinePage() {
                   key={i}
                   x={label.x}
                   y={chartHeight - padding.bottom + 20}
-                  fill="#9CA3AF"
+                  fill="#8c8c8c"
                   fontSize="12"
                   textAnchor="middle"
                 >
@@ -410,7 +400,7 @@ export default function TimelinePage() {
                 <path
                   d={`M ${chartPoints.map((p) => `${p.x},${p.y}`).join(" L ")}`}
                   fill="none"
-                  stroke="#10B981"
+                  stroke="#1890ff"
                   strokeWidth="3"
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -424,8 +414,8 @@ export default function TimelinePage() {
                     cx={point.x}
                     cy={point.y}
                     r="6"
-                    fill="#10B981"
-                    stroke="#000"
+                    fill="#1890ff"
+                    stroke="#fff"
                     strokeWidth="2"
                     className="cursor-pointer hover:r-8 transition-all"
                     onMouseEnter={() => setHoveredPoint(point)}
@@ -440,14 +430,14 @@ export default function TimelinePage() {
                         y={point.y - 60}
                         width="160"
                         height="50"
-                        fill="#1F2937"
-                        stroke="#374151"
+                        fill="#ffffff"
+                        stroke="#d9d9d9"
                         rx="4"
                       />
                       <text
                         x={point.x}
                         y={point.y - 35}
-                        fill="#FFFFFF"
+                        fill="#262626"
                         fontSize="12"
                         textAnchor="middle"
                         fontWeight="bold"
@@ -457,7 +447,7 @@ export default function TimelinePage() {
                       <text
                         x={point.x}
                         y={point.y - 20}
-                        fill="#10B981"
+                        fill="#1890ff"
                         fontSize="14"
                         textAnchor="middle"
                         fontWeight="bold"
@@ -475,7 +465,7 @@ export default function TimelinePage() {
                 y1={padding.top}
                 x2={padding.left}
                 y2={chartHeight - padding.bottom}
-                stroke="#6B7280"
+                stroke="#bfbfbf"
                 strokeWidth="2"
               />
               <line
@@ -483,7 +473,7 @@ export default function TimelinePage() {
                 y1={chartHeight - padding.bottom}
                 x2={chartWidth - padding.right}
                 y2={chartHeight - padding.bottom}
-                stroke="#6B7280"
+                stroke="#bfbfbf"
                 strokeWidth="2"
               />
 
@@ -491,7 +481,7 @@ export default function TimelinePage() {
               <text
                 x={chartWidth / 2}
                 y={chartHeight - 10}
-                fill="#9CA3AF"
+                fill="#8c8c8c"
                 fontSize="14"
                 textAnchor="middle"
                 fontWeight="bold"
@@ -501,7 +491,7 @@ export default function TimelinePage() {
               <text
                 x={20}
                 y={chartHeight / 2}
-                fill="#9CA3AF"
+                fill="#8c8c8c"
                 fontSize="14"
                 textAnchor="middle"
                 fontWeight="bold"
@@ -511,88 +501,88 @@ export default function TimelinePage() {
               </text>
             </svg>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Pending Revenue Section */}
-      <Card className="bg-black border-gray-800">
-        <CardHeader>
-          <CardTitle className="text-white flex items-center">
-            <Calendar className="mr-2 h-5 w-5" />
+      <div className="timeline-payment-card">
+        <div className="timeline-payment-header">
+          <h2 className="timeline-payment-title">
+            <Calendar className="h-5 w-5" />
             Pending Revenue ({filteredPendingPayments.length})
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
+          </h2>
+        </div>
+        <div className="timeline-payment-content">
+          <div className="timeline-payment-list">
             {filteredPendingPayments
               .sort((a, b) => a.daysUntilDue - b.daysUntilDue)
               .map((payment) => (
-                <div key={payment.id} className="flex items-center justify-between p-3 bg-gray-900 rounded-lg">
-                  <div>
-                    <p className="text-white font-medium">{payment.client}</p>
-                    <p className="text-gray-400 text-sm">Due: {payment.dueDate}</p>
+                <div key={payment.id} className="timeline-payment-item">
+                  <div className="timeline-payment-left">
+                    <p className="timeline-payment-client">{payment.client}</p>
+                    <p className="timeline-payment-date">Due: {payment.dueDate}</p>
                   </div>
-                  <div className="text-right">
-                    <p className="text-yellow-400 font-medium">₹{payment.amount.toLocaleString()}</p>
-                    <Badge variant="secondary" className="bg-yellow-600 text-xs mt-1">
+                  <div className="timeline-payment-right">
+                    <p className="timeline-payment-amount pending">₹{payment.amount.toLocaleString()}</p>
+                    <span className="timeline-payment-badge pending">
                       Due in {payment.daysUntilDue}d
-                    </Badge>
+                    </span>
                   </div>
                 </div>
               ))}
             
             {filteredPendingPayments.length === 0 && (
-              <div className="text-center py-4 text-gray-400">
+              <div className="timeline-empty-state">
                 No pending payments
               </div>
             )}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Overdue Revenue Section */}
-      <Card className="bg-black border-gray-800">
-        <CardHeader>
-          <CardTitle className="text-white flex items-center">
-            <Calendar className="mr-2 h-5 w-5" />
+      <div className="timeline-payment-card">
+        <div className="timeline-payment-header">
+          <h2 className="timeline-payment-title">
+            <Calendar className="h-5 w-5" />
             Overdue Revenue ({filteredOverduePayments.length})
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
+          </h2>
+        </div>
+        <div className="timeline-payment-content">
+          <div className="timeline-payment-list">
             {filteredOverduePayments
               .sort((a, b) => a.daysUntilDue - b.daysUntilDue) // Most overdue first (most negative)
               .map((payment) => (
-                <div key={payment.id} className="flex items-center justify-between p-3 bg-gray-900 rounded-lg">
-                  <div>
-                    <p className="text-white font-medium">{payment.client}</p>
-                    <p className="text-gray-400 text-sm">Due: {payment.dueDate}</p>
+                <div key={payment.id} className="timeline-payment-item">
+                  <div className="timeline-payment-left">
+                    <p className="timeline-payment-client">{payment.client}</p>
+                    <p className="timeline-payment-date">Due: {payment.dueDate}</p>
                   </div>
-                  <div className="text-right">
-                    <p className="text-red-400 font-medium">₹{payment.amount.toLocaleString()}</p>
-                    <Badge variant="destructive" className="bg-red-600 text-xs mt-1">
+                  <div className="timeline-payment-right">
+                    <p className="timeline-payment-amount overdue">₹{payment.amount.toLocaleString()}</p>
+                    <span className="timeline-payment-badge overdue">
                       Overdue by {Math.abs(payment.daysUntilDue)}d
-                    </Badge>
+                    </span>
                   </div>
                 </div>
               ))}
             
             {filteredOverduePayments.length === 0 && (
-              <div className="text-center py-4 text-gray-400">
+              <div className="timeline-empty-state">
                 No overdue payments
               </div>
             )}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Client Breakdown */}
-      <Card className="bg-black border-gray-800">
-        <CardHeader>
-          <CardTitle className="text-white">Client Revenue Breakdown</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="timeline-client-card">
+        <div className="timeline-client-header">
+          <h2 className="timeline-client-title">Client Revenue Breakdown</h2>
+        </div>
+        <div className="timeline-client-content">
+          <div className="timeline-client-grid">
             {uniqueClients.map((client) => {
               const clientRevenue = filteredData
                 .filter((item) => item.client === client && item.status === "completed")
@@ -613,37 +603,35 @@ export default function TimelinePage() {
                                    filteredOverduePayments.filter((item) => item.client === client).length
 
               return (
-                <div key={client} className="p-4 bg-gray-900 rounded-lg">
-                  <div className="flex items-center space-x-3 mb-3">
-                    <div className="w-4 h-4 rounded-full" style={{ backgroundColor: clientColor }}></div>
-                    <div>
-                      <p className="text-white font-medium text-sm">{client}</p>
-                      <p className="text-gray-400 text-xs">
-                        {totalPayments} payments
-                      </p>
+                <div key={client} className="timeline-client-item">
+                  <div className="timeline-client-header-section">
+                    <div className="timeline-client-color" style={{ backgroundColor: clientColor }}></div>
+                    <div className="timeline-client-info">
+                      <h4>{client}</h4>
+                      <p>{totalPayments} payments</p>
                     </div>
                   </div>
                   
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-gray-400 text-xs">Paid:</span>
-                      <span className="text-green-400 text-sm font-medium">₹{clientRevenue.toLocaleString()}</span>
+                  <div className="timeline-client-stats">
+                    <div className="timeline-client-stat">
+                      <span className="timeline-client-stat-label">Paid:</span>
+                      <span className="timeline-client-stat-value paid">₹{clientRevenue.toLocaleString()}</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400 text-xs">Pending:</span>
-                      <span className="text-yellow-400 text-sm font-medium">₹{pendingAmount.toLocaleString()}</span>
+                    <div className="timeline-client-stat">
+                      <span className="timeline-client-stat-label">Pending:</span>
+                      <span className="timeline-client-stat-value pending">₹{pendingAmount.toLocaleString()}</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400 text-xs">Overdue:</span>
-                      <span className="text-red-400 text-sm font-medium">₹{overdueAmount.toLocaleString()}</span>
+                    <div className="timeline-client-stat">
+                      <span className="timeline-client-stat-label">Overdue:</span>
+                      <span className="timeline-client-stat-value overdue">₹{overdueAmount.toLocaleString()}</span>
                     </div>
                   </div>
                 </div>
               )
             })}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   )
 }

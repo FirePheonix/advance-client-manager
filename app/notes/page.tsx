@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Plus, Edit, Trash2, Save, X } from "lucide-react"
 import { getNotes, createNote, updateNote, deleteNote } from "@/lib/database"
 import { toast } from "sonner"
+import './notes.css'
 
 interface Note {
   id: string
@@ -111,128 +112,124 @@ export default function NotesPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-white">Notes</h1>
-          <p className="text-gray-400 mt-2">Create and manage your notes</p>
+    <div className="notes-container">
+      <div className="notes-header">
+        <div className="notes-title-section">
+          <h1>Notes</h1>
+          <p>Create and manage your notes</p>
         </div>
         <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
           <DialogTrigger asChild>
-            <Button className="bg-blue-600 hover:bg-blue-700">
-              <Plus className="mr-2 h-4 w-4" />
+            <button className="new-note-button">
+              <Plus className="h-4 w-4" />
               New Note
-            </Button>
+            </button>
           </DialogTrigger>
-          <DialogContent className="bg-black border-gray-800">
-            <DialogHeader>
-              <DialogTitle className="text-white">Create New Note</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Title</label>
-                <Input
+          <DialogContent className="notes-dialog">
+            <div className="notes-dialog-header">
+              <h2 className="notes-dialog-title">Create New Note</h2>
+            </div>
+            <div className="notes-dialog-content">
+              <div className="notes-form-group">
+                <label className="notes-form-label">Title</label>
+                <input
+                  type="text"
                   value={newNote.title}
                   onChange={(e) => setNewNote(prev => ({ ...prev, title: e.target.value }))}
                   placeholder="Enter note title"
-                  className="bg-black border-gray-600 text-white"
+                  className="notes-form-input"
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Content</label>
-                <Textarea
+              <div className="notes-form-group">
+                <label className="notes-form-label">Content</label>
+                <textarea
                   value={newNote.content}
                   onChange={(e) => setNewNote(prev => ({ ...prev, content: e.target.value }))}
                   placeholder="Enter note content"
                   rows={6}
-                  className="bg-black border-gray-600 text-white"
+                  className="notes-form-textarea"
                 />
               </div>
-              <div className="flex justify-end space-x-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowCreateDialog(false)}
-                  className="border-gray-600 text-gray-300"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleCreateNote}
-                  disabled={isSubmitting}
-                  className="bg-blue-600 hover:bg-blue-700"
-                >
-                  {isSubmitting ? "Creating..." : "Create Note"}
-                </Button>
-              </div>
+            </div>
+            <div className="notes-dialog-footer">
+              <button
+                onClick={() => setShowCreateDialog(false)}
+                className="notes-button-outline"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCreateNote}
+                disabled={isSubmitting}
+                className="notes-button-primary"
+              >
+                {isSubmitting ? "Creating..." : "Create Note"}
+              </button>
             </div>
           </DialogContent>
         </Dialog>
       </div>
 
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="loading-grid">
           {[1, 2, 3].map((i) => (
-            <Card key={i} className="bg-black border-gray-800 animate-pulse">
-              <CardHeader>
-                <div className="h-6 bg-gray-700 rounded w-3/4 mb-2"></div>
-                <div className="h-4 bg-gray-700 rounded w-1/2"></div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <div className="h-4 bg-gray-700 rounded"></div>
-                  <div className="h-4 bg-gray-700 rounded w-5/6"></div>
-                  <div className="h-4 bg-gray-700 rounded w-4/6"></div>
+            <div key={i} className="loading-card">
+              <div className="loading-card-header">
+                <div className="loading-skeleton">
+                  <div className="loading-title"></div>
+                  <div className="loading-meta"></div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+              <div className="loading-card-content">
+                <div className="loading-skeleton">
+                  <div className="loading-line"></div>
+                  <div className="loading-line short"></div>
+                  <div className="loading-line medium"></div>
+                </div>
+              </div>
+            </div>
           ))}
         </div>
       ) : notes.length === 0 ? (
-        <Card className="bg-black border-gray-800">
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <div className="text-gray-400 text-center">
-              <p className="text-lg mb-2">No notes yet</p>
-              <p className="text-sm">Create your first note to get started</p>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="empty-state-card">
+          <div className="empty-state-content">
+            <p className="empty-state-title">No notes yet</p>
+            <p className="empty-state-description">Create your first note to get started</p>
+          </div>
+        </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="notes-grid">
           {notes.map((note) => (
-            <Card key={note.id} className="bg-black border-gray-800">
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <CardTitle className="text-white text-lg">{note.title}</CardTitle>
-                  <div className="flex space-x-1">
-                    <Button
-                      size="sm"
-                      variant="ghost"
+            <div key={note.id} className="note-card">
+              <div className="note-card-header">
+                <div className="note-card-title-section">
+                  <h3 className="note-card-title">{note.title}</h3>
+                  <div className="note-card-actions">
+                    <button
                       onClick={() => setEditingNote(note)}
-                      className="text-gray-400 hover:text-white hover:bg-gray-800"
+                      className="note-action-button edit"
                     >
                       <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
+                    </button>
+                    <button
                       onClick={() => handleDeleteNote(note.id)}
-                      className="text-red-400 hover:text-red-300 hover:bg-gray-800"
+                      className="note-action-button delete"
                     >
                       <Trash2 className="h-4 w-4" />
-                    </Button>
+                    </button>
                   </div>
                 </div>
-                <p className="text-xs text-gray-500">
+                <p className="note-card-meta">
                   Created: {formatDate(note.created_at)}
                   {note.updated_at !== note.created_at && (
-                    <span className="ml-2">• Updated: {formatDate(note.updated_at)}</span>
+                    <span> • Updated: {formatDate(note.updated_at)}</span>
                   )}
                 </p>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-300 whitespace-pre-wrap">{note.content}</p>
-              </CardContent>
-            </Card>
+              </div>
+              <div className="note-card-content">
+                <p className="note-card-text">{note.content}</p>
+              </div>
+            </div>
           ))}
         </div>
       )}
@@ -240,46 +237,46 @@ export default function NotesPage() {
       {/* Edit Note Dialog */}
       {editingNote && (
         <Dialog open={!!editingNote} onOpenChange={() => setEditingNote(null)}>
-          <DialogContent className="bg-black border-gray-800">
-            <DialogHeader>
-              <DialogTitle className="text-white">Edit Note</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Title</label>
-                <Input
+          <DialogContent className="notes-dialog">
+            <div className="notes-dialog-header">
+              <h2 className="notes-dialog-title">Edit Note</h2>
+            </div>
+            <div className="notes-dialog-content">
+              <div className="notes-form-group">
+                <label className="notes-form-label">Title</label>
+                <input
+                  type="text"
                   value={editingNote.title}
                   onChange={(e) => setEditingNote(prev => prev ? { ...prev, title: e.target.value } : null)}
                   placeholder="Enter note title"
-                  className="bg-black border-gray-600 text-white"
+                  className="notes-form-input"
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Content</label>
-                <Textarea
+              <div className="notes-form-group">
+                <label className="notes-form-label">Content</label>
+                <textarea
                   value={editingNote.content}
                   onChange={(e) => setEditingNote(prev => prev ? { ...prev, content: e.target.value } : null)}
                   placeholder="Enter note content"
                   rows={6}
-                  className="bg-black border-gray-600 text-white"
+                  className="notes-form-textarea"
                 />
               </div>
-              <div className="flex justify-end space-x-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setEditingNote(null)}
-                  className="border-gray-600 text-gray-300"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleUpdateNote}
-                  disabled={isSubmitting}
-                  className="bg-blue-600 hover:bg-blue-700"
-                >
-                  {isSubmitting ? "Updating..." : "Update Note"}
-                </Button>
-              </div>
+            </div>
+            <div className="notes-dialog-footer">
+              <button
+                onClick={() => setEditingNote(null)}
+                className="notes-button-outline"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleUpdateNote}
+                disabled={isSubmitting}
+                className="notes-button-primary"
+              >
+                {isSubmitting ? "Updating..." : "Update Note"}
+              </button>
             </div>
           </DialogContent>
         </Dialog>

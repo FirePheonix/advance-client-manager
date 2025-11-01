@@ -207,20 +207,20 @@ export default function TeamsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-950 p-6">
+      <div className="min-h-screen bg-white p-6">
         <div className="max-w-7xl mx-auto space-y-6">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-3xl font-bold text-white">Teams</h1>
-              <p className="text-gray-400 mt-2">Manage your team members, their tasks, and payments</p>
+              <h1 className="text-3xl font-bold text-black">Teams</h1>
+              <p className="text-gray-600 mt-2">Manage your team members, their tasks, and payments</p>
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-black border border-gray-800 rounded-lg p-6">
+              <div key={i} className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
                 <div className="animate-pulse">
-                  <div className="h-8 bg-gray-700 rounded w-1/2 mb-2"></div>
-                  <div className="h-4 bg-gray-700 rounded w-3/4"></div>
+                  <div className="h-8 bg-gray-300 rounded w-1/2 mb-2"></div>
+                  <div className="h-4 bg-gray-300 rounded w-3/4"></div>
                 </div>
               </div>
             ))}
@@ -231,17 +231,17 @@ export default function TeamsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 p-6">
+    <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-white">Teams</h1>
-            <p className="text-gray-400 mt-2">Manage your team members, their tasks, and payments</p>
+            <h1 className="text-3xl font-bold text-black">Teams</h1>
+            <p className="text-gray-600 mt-2">Manage your team members, their tasks, and payments</p>
           </div>
           <button 
             onClick={() => openDialog()} 
-            className="bg-white text-black hover:bg-gray-200 px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+            className="bg-black text-white hover:bg-gray-800 px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
           >
             <Plus className="h-4 w-4" />
             Add Team Member
@@ -250,38 +250,38 @@ export default function TeamsPage() {
 
         {/* Team Overview Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-black border border-gray-800 rounded-lg p-6">
+          <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-300">Total Team Members</p>
-                <div className="text-2xl font-bold text-white">{teamMembers.length}</div>
-                <p className="text-xs text-blue-400 mt-1">All members</p>
+                <p className="text-sm font-medium text-gray-700">Total Team Members</p>
+                <div className="text-2xl font-bold text-black">{teamMembers.length}</div>
+                <p className="text-xs text-blue-600 mt-1">All members</p>
               </div>
-              <User className="h-8 w-8 text-blue-400" />
+              <User className="h-8 w-8 text-blue-600" />
             </div>
           </div>
 
-          <div className="bg-black border border-gray-800 rounded-lg p-6">
+          <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-300">Monthly Salaries</p>
-                <div className="text-2xl font-bold text-white">₹{totalMonthlySalaries.toLocaleString()}</div>
-                <p className="text-xs text-green-400 mt-1">Active members only</p>
+                <p className="text-sm font-medium text-gray-700">Monthly Salaries</p>
+                <div className="text-2xl font-bold text-black">₹{totalMonthlySalaries.toLocaleString()}</div>
+                <p className="text-xs text-green-600 mt-1">Active members only</p>
               </div>
-              <DollarSign className="h-8 w-8 text-green-400" />
+              <DollarSign className="h-8 w-8 text-green-600" />
             </div>
           </div>
 
-          <div className="bg-black border border-gray-800 rounded-lg p-6">
+          <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-300">Average Salary</p>
-                <div className="text-2xl font-bold text-white">
+                <p className="text-sm font-medium text-gray-700">Average Salary</p>
+                <div className="text-2xl font-bold text-black">
                   ₹{teamMembers.length > 0 ? Math.round(totalMonthlySalaries / teamMembers.filter(m => m.status === 'active').length || 0).toLocaleString() : 0}
                 </div>
-                <p className="text-xs text-purple-400 mt-1">Per active member</p>
+                <p className="text-xs text-purple-600 mt-1">Per active member</p>
               </div>
-              <Calendar className="h-8 w-8 text-purple-400" />
+              <Calendar className="h-8 w-8 text-purple-600" />
             </div>
           </div>
         </div>
@@ -295,7 +295,7 @@ export default function TeamsPage() {
               placeholder="Search team members..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2 w-full bg-black border border-gray-800 text-white placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="pl-10 pr-4 py-2 w-full bg-white border border-gray-300 text-black placeholder-gray-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
         </div>
@@ -303,11 +303,11 @@ export default function TeamsPage() {
         {/* Team Members Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {filteredMembers.map((member) => (
-            <div key={member.id} className="bg-black border border-gray-800 rounded-lg p-6">
+            <div key={member.id} className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
               <div className="flex justify-between items-start mb-4">
                 <div>
-                  <h3 className="text-white font-semibold text-lg">{member.name}</h3>
-                  <p className="text-gray-400 mt-1">{member.role}</p>
+                  <h3 className="text-black font-semibold text-lg">{member.name}</h3>
+                  <p className="text-gray-600 mt-1">{member.role}</p>
                 </div>
                 <span className={`px-2 py-1 rounded-full text-xs text-white ${getStatusColor(member.status)}`}>
                   {getStatusText(member.status)}
@@ -316,19 +316,19 @@ export default function TeamsPage() {
 
               {/* Contact Info */}
               <div className="space-y-1 mb-4">
-                <p className="text-sm text-gray-300">{member.email}</p>
-                {member.phone && <p className="text-sm text-gray-300">{member.phone}</p>}
+                <p className="text-sm text-gray-700">{member.email}</p>
+                {member.phone && <p className="text-sm text-gray-700">{member.phone}</p>}
               </div>
 
               {/* Payment Info */}
-              <div className="flex items-center justify-between p-3 bg-gray-900 rounded-lg mb-4">
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg mb-4">
                 <div>
-                  <p className="text-sm text-gray-300">Monthly Salary</p>
-                  <p className="text-lg font-bold text-green-400">₹{Number(member.salary).toLocaleString()}</p>
+                  <p className="text-sm text-gray-700">Monthly Salary</p>
+                  <p className="text-lg font-bold text-green-600">₹{Number(member.salary).toLocaleString()}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm text-gray-300">Payment Date</p>
-                  <p className="text-sm text-white">
+                  <p className="text-sm text-gray-700">Payment Date</p>
+                  <p className="text-sm text-black">
                     {new Date(member.payment_date).toLocaleDateString('en-US', {
                       day: 'numeric',
                       month: 'short',
@@ -340,9 +340,9 @@ export default function TeamsPage() {
 
               {/* Notes */}
               {member.notes && (
-                <div className="mb-4 p-3 bg-gray-900 rounded-lg">
-                  <p className="text-sm text-gray-300">Notes</p>
-                  <p className="text-sm text-white mt-1">{member.notes}</p>
+                <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+                  <p className="text-sm text-gray-700">Notes</p>
+                  <p className="text-sm text-black mt-1">{member.notes}</p>
                 </div>
               )}
 
@@ -350,14 +350,14 @@ export default function TeamsPage() {
               <div className="flex space-x-2">
                 <button
                   onClick={() => openDialog(member)}
-                  className="flex-1 bg-black border border-gray-700 text-white hover:bg-gray-900 px-3 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors"
+                  className="flex-1 bg-white border border-gray-300 text-black hover:bg-gray-50 px-3 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors"
                 >
                   <Edit className="h-4 w-4" />
                   Edit
                 </button>
                 <button
                   onClick={() => handleDelete(member.id, member.name)}
-                  className="flex-1 bg-black border border-gray-700 text-white hover:bg-gray-900 hover:text-red-400 px-3 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors"
+                  className="flex-1 bg-white border border-gray-300 text-black hover:bg-gray-50 hover:text-red-600 px-3 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors"
                 >
                   <Trash2 className="h-4 w-4" />
                   Delete
@@ -369,8 +369,8 @@ export default function TeamsPage() {
 
         {filteredMembers.length === 0 && (
           <div className="text-center py-12">
-            <User className="h-16 w-16 text-gray-600 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-400 mb-2">No team members found</h3>
+            <User className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-600 mb-2">No team members found</h3>
             <p className="text-gray-500">
               {searchTerm ? "Try adjusting your search terms" : "Add your first team member to get started"}
             </p>
@@ -380,14 +380,14 @@ export default function TeamsPage() {
         {/* Add/Edit Dialog */}
         {showDialog && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-gray-900 rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-bold text-white">
+                <h2 className="text-xl font-bold text-black">
                   {currentMember ? "Edit Team Member" : "Add Team Member"}
                 </h2>
                 <button
                   onClick={closeDialog}
-                  className="text-gray-400 hover:text-white transition-colors"
+                  className="text-gray-600 hover:text-black transition-colors"
                 >
                   <X className="h-6 w-6" />
                 </button>
@@ -395,83 +395,83 @@ export default function TeamsPage() {
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     Name *
                   </label>
                   <input
                     type="text"
                     value={formData.name}
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
-                    className="w-full px-3 py-2 bg-black border border-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 bg-white border border-gray-300 text-black rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="Enter full name"
                   />
-                  {formErrors.name && <p className="text-red-400 text-sm mt-1">{formErrors.name}</p>}
+                  {formErrors.name && <p className="text-red-500 text-sm mt-1">{formErrors.name}</p>}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     Email *
                   </label>
                   <input
                     type="email"
                     value={formData.email}
                     onChange={(e) => setFormData({...formData, email: e.target.value})}
-                    className="w-full px-3 py-2 bg-black border border-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 bg-white border border-gray-300 text-black rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="Enter email address"
                   />
-                  {formErrors.email && <p className="text-red-400 text-sm mt-1">{formErrors.email}</p>}
+                  {formErrors.email && <p className="text-red-500 text-sm mt-1">{formErrors.email}</p>}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     Phone
                   </label>
                   <input
                     type="tel"
                     value={formData.phone}
                     onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                    className="w-full px-3 py-2 bg-black border border-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 bg-white border border-gray-300 text-black rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="Enter phone number"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     Role *
                   </label>
                   <input
                     type="text"
                     value={formData.role}
                     onChange={(e) => setFormData({...formData, role: e.target.value})}
-                    className="w-full px-3 py-2 bg-black border border-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 bg-white border border-gray-300 text-black rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="e.g., Senior Developer, Designer"
                   />
-                  {formErrors.role && <p className="text-red-400 text-sm mt-1">{formErrors.role}</p>}
+                  {formErrors.role && <p className="text-red-500 text-sm mt-1">{formErrors.role}</p>}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     Monthly Salary (₹) *
                   </label>
                   <input
                     type="number"
                     value={formData.salary}
                     onChange={(e) => setFormData({...formData, salary: e.target.value})}
-                    className="w-full px-3 py-2 bg-black border border-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 bg-white border border-gray-300 text-black rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="Enter monthly salary"
                     min="0"
                   />
-                  {formErrors.salary && <p className="text-red-400 text-sm mt-1">{formErrors.salary}</p>}
+                  {formErrors.salary && <p className="text-red-500 text-sm mt-1">{formErrors.salary}</p>}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     Status *
                   </label>
                   <select
                     value={formData.status}
                     onChange={(e) => setFormData({...formData, status: e.target.value as "active" | "inactive" | "on_leave"})}
-                    className="w-full px-3 py-2 bg-black border border-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 bg-white border border-gray-300 text-black rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="active">Active</option>
                     <option value="inactive">Inactive</option>
@@ -480,16 +480,16 @@ export default function TeamsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     Payment Date *
                   </label>
                   <input
                     type="date"
                     value={formData.payment_date}
                     onChange={(e) => setFormData({...formData, payment_date: e.target.value})}
-                    className="w-full px-3 py-2 bg-black border border-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 bg-white border border-gray-300 text-black rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
-                  {formErrors.payment_date && <p className="text-red-400 text-sm mt-1">{formErrors.payment_date}</p>}
+                  {formErrors.payment_date && <p className="text-red-500 text-sm mt-1">{formErrors.payment_date}</p>}
                 </div>
 
 
@@ -497,7 +497,7 @@ export default function TeamsPage() {
                   <button
                     type="button"
                     onClick={closeDialog}
-                    className="flex-1 px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors"
+                    className="flex-1 px-4 py-2 bg-gray-300 text-black rounded-lg hover:bg-gray-400 transition-colors"
                   >
                     Cancel
                   </button>

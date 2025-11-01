@@ -46,6 +46,7 @@ import {
 } from "@/lib/database"
 import { type Client, type Task, type Payment } from "@/lib/supabase"
 import { toast } from "sonner"
+import "../clients.css"
 
 interface ClientDetailPageProps {
   params: Promise<{ id: string }>
@@ -778,14 +779,15 @@ export default function ClientDetailPage({ params }: ClientDetailPageProps) {
     .reduce((sum, payment) => sum + payment.amount, 0)
 
   return (
-    <div className="space-y-6">
+    <div className="client-detail-container bg-gray-50">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="client-detail-header">
+        <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <Button
             variant="ghost"
             onClick={() => router.back()}
-            className="text-gray-300 hover:text-white hover:bg-gray-900"
+            className="client-detail-back-btn"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back
@@ -793,14 +795,14 @@ export default function ClientDetailPage({ params }: ClientDetailPageProps) {
           <div>
             {/* Archive Status Banner */}
             {client.status === 'archived' && (
-              <div className="mb-2 p-2 bg-amber-900/20 border border-amber-700 rounded-lg">
-                <div className="flex items-center space-x-2">
-                  <Archive className="h-4 w-4 text-amber-400" />
-                  <span className="text-amber-400 text-sm font-medium">
+              <div className="archive-banner">
+                <div className="archive-banner-content">
+                  <Archive className="archive-banner-icon" />
+                  <span className="archive-banner-title">
                     This client is archived
                   </span>
                 </div>
-                <p className="text-amber-300 text-xs mt-1">
+                <p className="archive-banner-text">
                   Archived clients don't appear in upcoming payments and are hidden from active lists. 
                   All data is preserved and can be restored by unarchiving.
                 </p>
@@ -808,7 +810,7 @@ export default function ClientDetailPage({ params }: ClientDetailPageProps) {
             )}
             
             <div className="flex items-center space-x-3">
-              <h1 className="text-3xl font-bold text-white">{client.name}</h1>
+              <h1 className="client-detail-title">{client.name}</h1>
               <Badge
                 variant={
                   client.status === "archived" 
@@ -870,91 +872,77 @@ export default function ClientDetailPage({ params }: ClientDetailPageProps) {
                 Delete
               </Button>
             </div>
-            <p className="text-gray-400 mt-1">Client Management & Analytics</p>
+            <p className="client-detail-subtitle">Client Management & Analytics</p>
           </div>
         </div>
 
         {/* Tab Navigation */}
         <div className="flex items-center space-x-2">
           <Button
-            variant={activeTab === "overview" ? "default" : "outline"}
             onClick={() => setActiveTab("overview")}
-            className={
-              activeTab === "overview" 
-                ? "bg-white text-black" 
-                : "bg-black border-gray-800 text-white hover:bg-gray-900"
-            }
+            className={`clients-tab ${activeTab === "overview" ? "active" : ""}`}
           >
             Overview
           </Button>
           <Button
-            variant={activeTab === "board" ? "default" : "outline"}
             onClick={() => setActiveTab("board")}
-            className={
-              activeTab === "board" 
-                ? "bg-white text-black" 
-                : "bg-black border-gray-800 text-white hover:bg-gray-900"
-            }
+            className={`clients-tab ${activeTab === "board" ? "active" : ""}`}
           >
             Board
           </Button>
           <Button
-            variant={activeTab === "timeline" ? "default" : "outline"}
             onClick={() => setActiveTab("timeline")}
-            className={
-              activeTab === "timeline" 
-                ? "bg-white text-black" 
-                : "bg-black border-gray-800 text-white hover:bg-gray-900"
-            }
+            className={`clients-tab ${activeTab === "timeline" ? "active" : ""}`}
           >
             Timeline
           </Button>
         </div>
       </div>
-
-      {/* Content based on active tab */}
+      
+      <div className="space-y-6 px-6">
+        {/* Content based on active tab */}
       {activeTab === "overview" && (
         <div className="space-y-6">
           {/* Client Info Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card className="bg-gray-800 border-gray-700">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-gray-400">Tasks Completed</CardTitle>
+            <Card className="client-stats-card">
+              <CardHeader className="client-stats-card-header">
+                <CardTitle className="client-stats-card-title">Tasks Completed</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-white">
+                <div className="client-stats-card-value">
                   {completedTasks}/{totalTasks}
                 </div>
-                <p className="text-xs text-gray-400 mt-1">
+                <p className="client-stats-card-subtitle">
                   {totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0}% completion rate
                 </p>
               </CardContent>
             </Card>
 
-            <Card className="bg-gray-800 border-gray-700">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-gray-400">Total Revenue</CardTitle>
+            <Card className="client-stats-card">
+              <CardHeader className="client-stats-card-header">
+                <CardTitle className="client-stats-card-title">Total Revenue</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-white">₹{totalRevenue.toLocaleString()}</div>
-                <p className="text-xs text-gray-400 mt-1">{completedPayments} payments received</p>
+                <div className="client-stats-card-value">₹{totalRevenue.toLocaleString()}</div>
+                <p className="client-stats-card-subtitle">{completedPayments} payments received</p>
               </CardContent>
             </Card>
 
-            <Card className="bg-gray-800 border-gray-700">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-gray-400">Payment Rate</CardTitle>
+            <Card className="client-stats-card">
+              <CardHeader className="client-stats-card-header">
+                <CardTitle className="client-stats-card-title">Payment Rate</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-white">{getPaymentRateDisplay()}</div>
+                <div className="client-stats-card-value">{getPaymentRateDisplay()}</div>
                 <div className="flex flex-col gap-1 mt-1">
-                  <p className="text-xs text-gray-400 capitalize">{client.payment_type} billing</p>
+                  <p className="client-stats-card-subtitle capitalize">{client.payment_type} billing</p>
                   {client.tiered_payments && client.tiered_payments.length > 0 && (
                     <>
-                      <p className="text-xs text-blue-400">
+                      <p className="text-xs text-blue-500">
                         <span className="font-medium">Tier:</span> {client.current_tier_index !== undefined ? client.current_tier_index + 1 : 'N/A'} of {client.tiered_payments.length}
                       </p>
-                      <p className="text-xs text-blue-400">
+                      <p className="text-xs text-blue-500">
                         <span className="font-medium">Payments made:</span> {client.payment_count || 0}
                       </p>
                     </>
@@ -963,72 +951,72 @@ export default function ClientDetailPage({ params }: ClientDetailPageProps) {
               </CardContent>
             </Card>
 
-            <Card className="bg-gray-800 border-gray-700">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-gray-400">Services</CardTitle>
+            <Card className="client-stats-card">
+              <CardHeader className="client-stats-card-header">
+                <CardTitle className="client-stats-card-title">Services</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-white">{client.services.length}</div>
-                <p className="text-xs text-gray-400 mt-1">Active services</p>
+                <div className="client-stats-card-value">{Object.keys(client.services).length}</div>
+                <p className="client-stats-card-subtitle">Active services</p>
               </CardContent>
             </Card>
           </div>
 
           {/* Client Details */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card className="bg-gray-800 border-gray-700">
-              <CardHeader>
-                <CardTitle className="text-white">Contact Information</CardTitle>
+            <Card className="client-info-card">
+              <CardHeader className="client-info-card-header">
+                <CardTitle className="client-info-card-title">Contact Information</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center text-sm text-gray-300">
-                  <Mail className="mr-3 h-4 w-4" />
+              <CardContent className="client-info-card-content">
+                <div className="client-info-item">
+                  <Mail />
                   {client.email}
                 </div>
                 {client.phone && (
-                  <div className="flex items-center text-sm text-gray-300">
-                    <Phone className="mr-3 h-4 w-4" />
+                  <div className="client-info-item">
+                    <Phone />
                     {client.phone}
                   </div>
                 )}
                 {client.company && (
-                  <div className="flex items-center text-sm text-gray-300">
-                    <Building className="mr-3 h-4 w-4" />
+                  <div className="client-info-item">
+                    <Building />
                     {client.company}
                   </div>
                 )}
-                <div className="flex items-center text-sm text-gray-300">
-                  <DollarSign className="mr-3 h-4 w-4" />
+                <div className="client-info-item">
+                  <DollarSign />
                   {getPaymentRateDisplay()}
                 </div>
                 {client.next_payment && (
-                  <div className="flex items-center text-sm text-gray-300">
-                    <Calendar className="mr-3 h-4 w-4" />
+                  <div className="client-info-item">
+                    <Calendar />
                     Next payment: {client.next_payment}
                   </div>
                 )}
               </CardContent>
             </Card>
 
-            <Card className="bg-gray-800 border-gray-700">
-              <CardHeader>
-                <CardTitle className="text-white">Services & Notes</CardTitle>
+            <Card className="client-info-card">
+              <CardHeader className="client-info-card-header">
+                <CardTitle className="client-info-card-title">Services & Notes</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <h4 className="text-sm font-medium text-gray-400 mb-2">Services</h4>
-                  <div className="flex flex-wrap gap-2">
+              <CardContent className="client-info-card-content">
+                <div className="client-services-section">
+                  <h4>Services</h4>
+                  <div className="client-services-badges">
                     {Object.entries(client.services).map(([service, price]) => (
-                      <Badge key={service} variant="outline" className="border-gray-600 text-gray-300">
+                      <div key={service} className="client-service-badge-detailed">
                         {service} (₹{price})
-                      </Badge>
+                      </div>
                     ))}
                   </div>
                 </div>
                 {client.notes && (
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-400 mb-2">Notes</h4>
-                    <p className="text-sm text-gray-300 bg-gray-900 p-3 rounded">{client.notes}</p>
+                  <div className="client-notes-section">
+                    <h4>Notes</h4>
+                    <div className="client-notes-content">{client.notes}</div>
                   </div>
                 )}
               </CardContent>
@@ -1037,48 +1025,46 @@ export default function ClientDetailPage({ params }: ClientDetailPageProps) {
           
           {/* Tier Progress Section - Only show if using tiered payments */}
           {client.tiered_payments && client.tiered_payments.length > 0 && (
-            <Card className="bg-gray-800 border-gray-700">
-              <CardHeader>
-                <CardTitle className="text-white">Payment Tier Progress</CardTitle>
+            <Card className="tier-progress-card">
+              <CardHeader className="tier-progress-header">
+                <CardTitle className="tier-progress-title">Payment Tier Progress</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="bg-gray-900 p-4 rounded-lg">
-                    <h4 className="text-sm font-medium text-gray-400 mb-2">Current Status</h4>
-                    <p className="text-xl font-bold text-blue-400">{getCurrentTierLabel()}</p>
-                    <p className="text-sm text-gray-300 mt-1">
+              <CardContent className="tier-progress-content">
+                <div className="tier-progress-grid">
+                  <div className="tier-progress-item">
+                    <h4>Current Status</h4>
+                    <p className="tier-progress-value blue">{getCurrentTierLabel()}</p>
+                    <p className="tier-progress-subtitle">
                       {client.payment_count || 0} payments made total
                     </p>
                   </div>
                   
-                  <div className="bg-gray-900 p-4 rounded-lg">
-                    <h4 className="text-sm font-medium text-gray-400 mb-2">Tier Progress</h4>
+                  <div className="tier-progress-item">
+                    <h4>Tier Progress</h4>
                     {getPaymentsRemainingInTier() !== null ? (
                       <>
-                        <p className="text-xl font-bold text-green-400">
+                        <p className="tier-progress-value green">
                           {getPaymentsRemainingInTier()} payments remaining
                         </p>
-                        <p className="text-sm text-gray-300 mt-1">
+                        <p className="tier-progress-subtitle">
                           in current tier
                         </p>
                       </>
                     ) : (
-                      <p className="text-xl font-bold text-gray-400">No tier data</p>
+                      <p className="tier-progress-value">No tier data</p>
                     )}
                   </div>
                   
-                  <div className="bg-gray-900 p-4 rounded-lg">
-                    <h4 className="text-sm font-medium text-gray-400 mb-2">Final Tier</h4>
-                    <p className="text-xl font-bold text-purple-400">
+                  <div className="tier-progress-item">
+                    <h4>Final Tier</h4>
+                    <p className="tier-progress-value purple">
                       After {getTotalTierPayments()} payments
                     </p>
-                    <p className="text-sm text-gray-300 mt-1">
+                    <p className="tier-progress-subtitle">
                       ₹{client.final_monthly_rate || client.final_weekly_rate || 0} per {client.payment_type === "monthly" ? "month" : "week"}
                     </p>
                   </div>
                 </div>
-                
-                {/* Actions section */}
               </CardContent>
             </Card>
           )}
@@ -1114,10 +1100,11 @@ export default function ClientDetailPage({ params }: ClientDetailPageProps) {
           onAddPayment={handleAddPayment}
         />
       )}
+      </div>
 
       {/* Edit Client Dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="bg-black border-gray-800 text-white max-w-6xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="dialog-content max-w-6xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Client</DialogTitle>
             <DialogDescription className="text-gray-400">
@@ -1768,6 +1755,7 @@ export default function ClientDetailPage({ params }: ClientDetailPageProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      </div>
     </div>
   )
 }

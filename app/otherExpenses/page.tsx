@@ -23,6 +23,7 @@ import {
   updateOtherExpense, 
   deleteOtherExpense 
 } from "@/lib/database"
+import './otherExpenses.css'
 
 export function formatCurrency(amount: number, currency: string = "INR", locale: string = "en-IN") {
     return amount.toLocaleString(locale, {
@@ -217,19 +218,19 @@ export default function OtherExpensesPage() {
   }
   
   return (
-    <div className="container mx-auto py-8">
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle>Other Expenses</CardTitle>
-          <CardDescription>
+    <div className="other-expenses-container">
+      <Card className="other-expenses-card">
+        <CardHeader className="other-expenses-header">
+          <CardTitle className="other-expenses-title">Other Expenses</CardTitle>
+          <CardDescription className="other-expenses-description">
             Manage your miscellaneous business expenses
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex justify-between items-center mb-6">
-            <div>
-              <p className="text-sm text-muted-foreground">Total Other Expenses</p>
-              <p className="text-3xl font-bold text-red-500">
+          <div className="other-expenses-stats">
+            <div className="other-expenses-total">
+              <p className="other-expenses-total-label">Total Other Expenses</p>
+              <p className="other-expenses-total-amount">
                 {formatCurrency(totalExpenses)}
               </p>
             </div>
@@ -238,21 +239,22 @@ export default function OtherExpensesPage() {
               if (!open) resetAddForm()
             }}>
               <DialogTrigger asChild>
-                <Button>Add New Expense</Button>
+                <Button className="add-expense-button">Add New Expense</Button>
               </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Add New Expense</DialogTitle>
-                  <DialogDescription>
+              <DialogContent className="expense-dialog">
+                <DialogHeader className="dialog-header">
+                  <DialogTitle className="dialog-title">Add New Expense</DialogTitle>
+                  <DialogDescription className="dialog-description">
                     Enter the details for the new expense
                   </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleAddExpense}>
-                  <div className="grid gap-4 py-4">
-                    <div className="grid gap-2">
-                      <Label htmlFor="title">Expense Title *</Label>
-                      <Input
+                  <div className="dialog-content">
+                    <div className="form-group">
+                      <label htmlFor="title" className="form-label required">Expense Title</label>
+                      <input
                         id="title"
+                        className="form-input"
                         placeholder="e.g., Office supplies, Software subscription"
                         value={newExpense.title}
                         onChange={(e) => setNewExpense(prev => ({...prev, title: e.target.value}))}
@@ -260,10 +262,11 @@ export default function OtherExpensesPage() {
                         disabled={isSubmitting}
                       />
                     </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="amount">Amount (₹) *</Label>
-                      <Input
+                    <div className="form-group">
+                      <label htmlFor="amount" className="form-label required">Amount (₹)</label>
+                      <input
                         id="amount"
+                        className="form-input"
                         type="number"
                         min="0.01"
                         step="0.01"
@@ -274,10 +277,11 @@ export default function OtherExpensesPage() {
                         disabled={isSubmitting}
                       />
                     </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="date">Date *</Label>
-                      <Input
+                    <div className="form-group">
+                      <label htmlFor="date" className="form-label required">Date</label>
+                      <input
                         id="date"
+                        className="form-input"
                         type="date"
                         value={newExpense.date}
                         onChange={(e) => setNewExpense(prev => ({...prev, date: e.target.value}))}
@@ -285,10 +289,11 @@ export default function OtherExpensesPage() {
                         disabled={isSubmitting}
                       />
                     </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="description">Description</Label>
-                      <Textarea
+                    <div className="form-group">
+                      <label htmlFor="description" className="form-label">Description</label>
+                      <textarea
                         id="description"
+                        className="form-textarea"
                         placeholder="Optional description or notes..."
                         value={newExpense.description}
                         onChange={(e) => setNewExpense(prev => ({...prev, description: e.target.value}))}
@@ -297,68 +302,70 @@ export default function OtherExpensesPage() {
                       />
                     </div>
                   </div>
-                  <DialogFooter>
-                    <Button 
+                  <div className="dialog-footer">
+                    <button 
                       type="button" 
-                      variant="outline" 
+                      className="button-outline"
                       onClick={() => setIsAddDialogOpen(false)}
                       disabled={isSubmitting}
                     >
                       Cancel
-                    </Button>
-                    <Button type="submit" disabled={isSubmitting}>
+                    </button>
+                    <button type="submit" className="button-primary" disabled={isSubmitting}>
                       {isSubmitting ? "Adding..." : "Add Expense"}
-                    </Button>
-                  </DialogFooter>
+                    </button>
+                  </div>
                 </form>
               </DialogContent>
             </Dialog>
           </div>
           
-          <Table>
-            <TableCaption>List of all other business expenses</TableCaption>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Title</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+          <table className="other-expenses-table">
+            <caption className="table-caption">List of all other business expenses</caption>
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Amount</th>
+                <th>Date</th>
+                <th>Description</th>
+                <th style={{ textAlign: 'right' }}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
               {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8">
+                <tr>
+                  <td colSpan={5} className="loading-state">
                     Loading expenses...
-                  </TableCell>
-                </TableRow>
+                  </td>
+                </tr>
               ) : expenses.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8">
+                <tr>
+                  <td colSpan={5} className="empty-state">
                     No expenses found. Add your first expense above.
-                  </TableCell>
-                </TableRow>
+                  </td>
+                </tr>
               ) : (
                 expenses.map((expense) => (
-                  <TableRow key={expense.id}>
-                    <TableCell className="font-medium">{expense.title}</TableCell>
-                    <TableCell className="font-semibold">
+                  <tr key={expense.id}>
+                    <td className="expense-title">{expense.title}</td>
+                    <td className="expense-amount">
                       {formatCurrency(expense.amount)}
-                    </TableCell>
-                    <TableCell>
+                    </td>
+                    <td className="expense-date">
                       {new Date(expense.date).toLocaleDateString('en-IN')}
-                    </TableCell>
-                    <TableCell className="max-w-xs">
-                      <div className="truncate" title={expense.description || ""}>
+                    </td>
+                    <td>
+                      <div 
+                        className={`expense-description ${!expense.description ? 'expense-description-empty' : ''}`}
+                        title={expense.description || ""}
+                      >
                         {expense.description || "—"}
                       </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm"
+                    </td>
+                    <td>
+                      <div className="expense-actions">
+                        <button 
+                          className="action-button edit-button"
                           onClick={() => {
                             setEditingExpense(expense)
                             setIsEditDialogOpen(true)
@@ -366,10 +373,9 @@ export default function OtherExpensesPage() {
                           disabled={isSubmitting}
                         >
                           Edit
-                        </Button>
-                        <Button 
-                          variant="destructive" 
-                          size="sm"
+                        </button>
+                        <button 
+                          className="action-button delete-button"
                           onClick={() => {
                             setDeletingId(expense.id)
                             setIsDeleteDialogOpen(true)
@@ -377,43 +383,45 @@ export default function OtherExpensesPage() {
                           disabled={isSubmitting}
                         >
                           Delete
-                        </Button>
+                        </button>
                       </div>
-                    </TableCell>
-                  </TableRow>
+                    </td>
+                  </tr>
                 ))
               )}
-            </TableBody>
-          </Table>
+            </tbody>
+          </table>
         </CardContent>
       </Card>
       
       {/* Edit Expense Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Expense</DialogTitle>
-            <DialogDescription>
+        <DialogContent className="expense-dialog">
+          <DialogHeader className="dialog-header">
+            <DialogTitle className="dialog-title">Edit Expense</DialogTitle>
+            <DialogDescription className="dialog-description">
               Update the expense details
             </DialogDescription>
           </DialogHeader>
           {editingExpense && (
             <form onSubmit={handleUpdateExpense}>
-              <div className="grid gap-4 py-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="edit-title">Expense Title *</Label>
-                  <Input
+              <div className="dialog-content">
+                <div className="form-group">
+                  <label htmlFor="edit-title" className="form-label required">Expense Title</label>
+                  <input
                     id="edit-title"
+                    className="form-input"
                     value={editingExpense.title}
                     onChange={(e) => setEditingExpense(prev => prev ? {...prev, title: e.target.value} : null)}
                     required
                     disabled={isSubmitting}
                   />
                 </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="edit-amount">Amount (₹) *</Label>
-                  <Input
+                <div className="form-group">
+                  <label htmlFor="edit-amount" className="form-label required">Amount (₹)</label>
+                  <input
                     id="edit-amount"
+                    className="form-input"
                     type="number"
                     min="0.01"
                     step="0.01"
@@ -426,10 +434,11 @@ export default function OtherExpensesPage() {
                     disabled={isSubmitting}
                   />
                 </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="edit-date">Date *</Label>
-                  <Input
+                <div className="form-group">
+                  <label htmlFor="edit-date" className="form-label required">Date</label>
+                  <input
                     id="edit-date"
+                    className="form-input"
                     type="date"
                     value={editingExpense.date}
                     onChange={(e) => setEditingExpense(prev => prev ? {...prev, date: e.target.value} : null)}
@@ -437,10 +446,11 @@ export default function OtherExpensesPage() {
                     disabled={isSubmitting}
                   />
                 </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="edit-description">Description</Label>
-                  <Textarea
+                <div className="form-group">
+                  <label htmlFor="edit-description" className="form-label">Description</label>
+                  <textarea
                     id="edit-description"
+                    className="form-textarea"
                     value={editingExpense.description || ""}
                     onChange={(e) => setEditingExpense(prev => prev ? {...prev, description: e.target.value} : null)}
                     rows={3}
@@ -448,19 +458,19 @@ export default function OtherExpensesPage() {
                   />
                 </div>
               </div>
-              <DialogFooter>
-                <Button 
+              <div className="dialog-footer">
+                <button 
                   type="button" 
-                  variant="outline" 
+                  className="button-outline"
                   onClick={() => setIsEditDialogOpen(false)}
                   disabled={isSubmitting}
                 >
                   Cancel
-                </Button>
-                <Button type="submit" disabled={isSubmitting}>
+                </button>
+                <button type="submit" className="button-primary" disabled={isSubmitting}>
                   {isSubmitting ? "Updating..." : "Update Expense"}
-                </Button>
-              </DialogFooter>
+                </button>
+              </div>
             </form>
           )}
         </DialogContent>
@@ -468,16 +478,16 @@ export default function OtherExpensesPage() {
       
       {/* Delete Confirmation Dialog */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Confirm Deletion</DialogTitle>
-            <DialogDescription>
+        <DialogContent className="expense-dialog">
+          <DialogHeader className="dialog-header">
+            <DialogTitle className="dialog-title">Confirm Deletion</DialogTitle>
+            <DialogDescription className="dialog-description">
               Are you sure you want to delete this expense? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
-            <Button 
-              variant="outline" 
+          <div className="dialog-footer">
+            <button 
+              className="button-outline"
               onClick={() => {
                 setIsDeleteDialogOpen(false)
                 setDeletingId(null)
@@ -485,15 +495,15 @@ export default function OtherExpensesPage() {
               disabled={isSubmitting}
             >
               Cancel
-            </Button>
-            <Button 
-              variant="destructive" 
+            </button>
+            <button 
+              className="button-destructive"
               onClick={handleDeleteExpense} 
               disabled={isSubmitting}
             >
               {isSubmitting ? "Deleting..." : "Delete"}
-            </Button>
-          </DialogFooter>
+            </button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

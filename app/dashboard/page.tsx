@@ -1,29 +1,10 @@
 'use client';
 
 import { useState, useEffect } from "react";
-import {
-  Card,
-  Col,
-  Row,
-  Typography,
-  Tooltip,
-  Progress,
-  Upload,
-  message,
-  Button,
-  Timeline,
-  Radio,
-} from "antd";
-import {
-  ToTopOutlined,
-  MenuUnfoldOutlined,
-  RightOutlined,
-  MinusOutlined,
-  MailOutlined,
-  CheckOutlined,
-} from "@ant-design/icons";
-import Paragraph from "antd/lib/typography/Paragraph";
-import "./dashboard/dashboard.css";
+import { Card, Col, Row, Typography, Button, Timeline, message } from "antd";
+import { MenuUnfoldOutlined } from "@ant-design/icons";
+
+const { Paragraph } = Typography;
 
 // Import chart components
 import EChart from "@/components/dashboard/EChart";
@@ -64,7 +45,7 @@ const team3 = "/dashboard-assets/team-3.jpg";
 const team4 = "/dashboard-assets/team-4.jpg";
 const card = "/dashboard-assets/info-card-1.jpg";
 
-export default function HomePage() {
+export default function Dashboard() {
   const { Title, Text } = Typography;
 
   const onChange = (e: any) => console.log(`radio checked:${e.target.value}`);
@@ -528,6 +509,8 @@ export default function HomePage() {
           {/* Placeholder for future component or content */}
         </Col>
       </Row>
+
+
     </div>
   );
 }

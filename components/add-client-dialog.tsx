@@ -17,6 +17,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Plus, Trash2 } from "lucide-react"
+import "../app/clients/clients.css"
 
 interface AddClientDialogProps {
   open: boolean
@@ -320,10 +321,10 @@ export function AddClientDialog({ open, onOpenChange, onAddClient }: AddClientDi
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-black border-gray-800 text-white max-w-6xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="add-client-dialog bg-white border-gray-200 text-gray-900 max-w-6xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Add New Client</DialogTitle>
-          <DialogDescription className="text-gray-400">
+          <DialogTitle className="text-gray-900">Add New Client</DialogTitle>
+          <DialogDescription className="text-gray-600">
             Add a new client with tiered or normal payment structure.
           </DialogDescription>
         </DialogHeader>
@@ -332,45 +333,45 @@ export function AddClientDialog({ open, onOpenChange, onAddClient }: AddClientDi
           {/* Basic Information */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Client Name *</Label>
+              <Label htmlFor="name" className="text-gray-700 font-medium">Client Name *</Label>
               <Input
                 id="name"
                 value={formData.name}
                 onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
-                className="bg-black border-gray-800"
+                className="bg-white border-gray-300 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="company">Company</Label>
+              <Label htmlFor="company" className="text-gray-700 font-medium">Company</Label>
               <Input
                 id="company"
                 value={formData.company}
                 onChange={(e) => setFormData((prev) => ({ ...prev, company: e.target.value }))}
-                className="bg-black border-gray-800"
+                className="bg-white border-gray-300 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email *</Label>
+              <Label htmlFor="email" className="text-gray-700 font-medium">Email *</Label>
               <Input
                 id="email"
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
-                className="bg-black border-gray-800"
+                className="bg-white border-gray-300 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="phone">Phone</Label>
+              <Label htmlFor="phone" className="text-gray-700 font-medium">Phone</Label>
               <Input
                 id="phone"
                 value={formData.phone}
                 onChange={(e) => setFormData((prev) => ({ ...prev, phone: e.target.value }))}
-                className="bg-black border-gray-800"
+                className="bg-white border-gray-300 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
               />
             </div>
           </div>
@@ -821,10 +822,10 @@ export function AddClientDialog({ open, onOpenChange, onAddClient }: AddClientDi
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="border-gray-300 text-gray-700 hover:bg-gray-50">
               Cancel
             </Button>
-            <Button type="submit" className="bg-white text-black hover:bg-gray-200">
+            <Button type="submit" className="bg-blue-600 text-white hover:bg-blue-700">
               Add Client
             </Button>
           </DialogFooter>

@@ -131,7 +131,6 @@ export function UpcomingPaymentsNew() {
     
     // Listen for post count updates to refresh the payments
     const handlePostCountsUpdated = (event: CustomEvent) => {
-      console.log("Post counts updated, refreshing payments:", event.detail)
       loadPayments()
     }
     
@@ -147,7 +146,6 @@ export function UpcomingPaymentsNew() {
   const loadSettings = async () => {
     try {
       const settings = await getSettings()
-      console.log("Settings loaded in loadSettings:", settings) // Debug log
       
       // Update default invoice data with settings from database
       setInvoiceData(prev => {
@@ -172,7 +170,6 @@ export function UpcomingPaymentsNew() {
           taxRate: '0',
           discountAmount: '0',
         }
-        console.log("Updated invoice data in loadSettings:", updatedData) // Debug log
         return updatedData
       })
     } catch (error) {
@@ -243,7 +240,7 @@ export function UpcomingPaymentsNew() {
       setIsUpdatingPreview(true)
       const timeoutId = setTimeout(async () => {
         try {
-          // Parse services with a more flexible approach
+          // Parse services with a more flexible approach first (faster)
           const parsed = parseServicesFlexibly(invoiceData.services)
           
           if (parsed.length > 0) {
@@ -252,46 +249,23 @@ export function UpcomingPaymentsNew() {
             return
           }
         
-          // If no parsing worked, use the original parseServicesForInvoice function
-          const services = await parseServicesForInvoice()
-          setInvoiceServices(services)
+          // If no parsing worked, use fallback without heavy database calls
+          setInvoiceServices([{
+            name: invoiceData.services || 'Social Media Services',
+            amount: selectedPayment.amount
+          }])
           setIsUpdatingPreview(false)
         } catch (error) {
           console.error("Error updating invoice services:", error)
           setIsUpdatingPreview(false)
         }
-      }, 200) // Reduced debounce to 200ms for better responsiveness
+      }, 300) // Increased debounce to reduce calls
       
       return () => clearTimeout(timeoutId)
     }
   }, [invoiceData.services, showInvoiceForm, selectedPayment])
 
-  // Effect to force re-render of invoice preview when key fields change
-  useEffect(() => {
-    if (showInvoiceForm && selectedPayment) {
-      // Force a re-render of the invoice preview by updating a state variable
-      // This ensures the preview updates when currency, discount, tax, etc. change
-      const timeoutId = setTimeout(() => {
-        // Trigger a re-render by updating the invoice services state
-        setInvoiceServices(prev => [...prev])
-      }, 100)
-      
-      return () => clearTimeout(timeoutId)
-    }
-  }, [
-    invoiceData.currencySymbol, 
-    invoiceData.discountAmount, 
-    invoiceData.taxRate, 
-    invoiceData.discountReason,
-    invoiceData.businessTitle,
-    invoiceData.thankYouMessage,
-    invoiceData.paymentInstructions,
-    invoiceData.termsAndConditions,
-    invoiceData.notes,
-    invoiceData.footerText,
-    showInvoiceForm, 
-    selectedPayment
-  ])
+  // Removed heavy re-render effect to improve performance
 
   const loadPayments = async () => {
     try {
@@ -301,7 +275,6 @@ export function UpcomingPaymentsNew() {
       nextWeek.setDate(today.getDate() + 7)
 
       // Automatically update tier transitions with rate limiting
-      console.log("Updating tier transitions in upcoming payments...")
       await ensureAutomaticTierUpdates()
 
       // Fetch all clients with their next_payment dates
@@ -378,7 +351,6 @@ export function UpcomingPaymentsNew() {
           
         // Get post counts for the client for the specific month
         const postCounts = await getPostCountsForClient(clientDetails.id, nextPaymentMonthYear)
-        console.log("Post counts in parseServicesForInvoice:", postCounts, "for month:", nextPaymentMonthYear); // Debug log
         
         // Create line items for each platform with post counts
         const lineItems = postCounts
@@ -394,7 +366,6 @@ export function UpcomingPaymentsNew() {
         
         // If we found post counts, return them
         if (lineItems.length > 0) {
-          console.log("Generated line items for invoice:", lineItems); // Debug log
           return lineItems
         }
         
@@ -410,7 +381,6 @@ export function UpcomingPaymentsNew() {
         });
         
         if (fallbackItems.length > 0) {
-          console.log("Using fallback items for invoice:", fallbackItems); // Debug log
           return fallbackItems;
         }
       } 
@@ -633,17 +603,12 @@ Note: Please manually attach the downloaded PDF file to this email.`
 
   const handleMarkAsPaid = async (paymentId: string, clientId: string, amount: number, dueDate: string) => {
     try {
-      console.log("DEBUG: Attempting to mark payment as paid", { paymentId, clientId, amount, dueDate })
-      
       // Get client to check payment type
       const client = await getClientById(clientId)
-      console.log("DEBUG: Client data retrieved", client)
       
       if (client.payment_type === 'per-post') {
-        console.log("DEBUG: Processing per-post client payment")
         // For per-post clients, get current post counts before creating payment
         const postCountsData = await getPostCountsForClient(clientId)
-        console.log("DEBUG: Post counts retrieved", postCountsData)
         
         // Create a specialized per-post payment that also resets counts
         await createPerPostPayment(
@@ -651,10 +616,7 @@ Note: Please manually attach the downloaded PDF file to this email.`
           amount, 
           postCountsData
         )
-        
-        console.log("DEBUG: Per-post payment created and post counts reset")
       } else {
-        console.log("DEBUG: Processing regular client payment")
         // Regular client - create standard payment
         await createPayment({
           client_id: clientId,
@@ -664,11 +626,9 @@ Note: Please manually attach the downloaded PDF file to this email.`
           type: "payment",
           description: "Monthly payment received",
         })
-        console.log("DEBUG: Regular payment created successfully")
 
         // Update client's next payment date appropriately
         await updateClientNextPayment(clientId, dueDate)
-        console.log("DEBUG: Next payment date updated successfully")
       }
 
       // Update local state to reflect payment
@@ -681,13 +641,7 @@ Note: Please manually attach the downloaded PDF file to this email.`
       // Force reload all payments to ensure everything is up to date
       loadPayments()
     } catch (error) {
-      console.error("ERROR: Failed to mark payment as paid:", error)
-      console.error("ERROR: Error details:", {
-        message: (error as any)?.message,
-        code: (error as any)?.code,
-        details: (error as any)?.details,
-        hint: (error as any)?.hint
-      })
+      console.error("Failed to mark payment as paid:", error)
       message.error(`Failed to mark payment as paid: ${(error as any)?.message || 'Unknown error'}`)
     }
   }
@@ -702,10 +656,7 @@ Note: Please manually attach the downloaded PDF file to this email.`
         getSettings()
       ])
       
-      console.log("Client details:", clientDetails) // Debug log
-      console.log("Settings in handleOpenInvoiceForm:", settings) // Debug log
-      console.log("Client next_payment:", clientDetails.next_payment) // Debug log
-      console.log("Payment dueDate:", payment.dueDate) // Debug log
+
       
       // For per-post clients, preload post counts and calculate service items
       let servicesText = 'Social Media Services';
@@ -717,8 +668,7 @@ Note: Please manually attach the downloaded PDF file to this email.`
         
         // Fetch post counts for this client for the specific month
         const postCounts = await getPostCountsForClient(clientDetails.id, nextPaymentMonthYear);
-        console.log("Post counts for auto-fill:", postCounts, "for month:", nextPaymentMonthYear); // Debug log
-        
+
         // Format services with post counts and prices - enhanced formatting
         const serviceItems = postCounts
           .filter(pc => pc.count > 0) // Only include platforms with posts
@@ -735,7 +685,6 @@ Note: Please manually attach the downloaded PDF file to this email.`
         // If we have services with post counts, use them
         if (serviceItems.length > 0) {
           servicesText = serviceItems.join(', ');
-          console.log("Auto-filled services text:", servicesText); // Debug log
         } else {
           // Fallback: Show available platforms even with 0 posts for transparency
           const allPlatforms = Object.keys(clientDetails.per_post_rates);
@@ -745,7 +694,6 @@ Note: Please manually attach the downloaded PDF file to this email.`
             return `${platformName} Posts (0 posts) - ₹0`;
           });
           servicesText = fallbackItems.join(', ');
-          console.log("Fallback services text (no posts):", servicesText); // Debug log
         }
       } else if (clientDetails.services && Object.keys(clientDetails.services).length > 0) {
         // Format services with prices for regular clients
@@ -803,7 +751,7 @@ Note: Please manually attach the downloaded PDF file to this email.`
         customField5: settings.customField5 || '',
       }))
       
-      console.log("Due date being set:", clientDetails.next_payment ? new Date(clientDetails.next_payment).toLocaleDateString() : (payment.dueDate || "no fallback")) // Debug log
+
       
       // Also preload the invoice services for immediate display
       const services = await parseServicesForInvoice();

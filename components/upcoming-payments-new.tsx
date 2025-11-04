@@ -15,7 +15,8 @@ import {
   resetPostCounts,
   getPostCountsForClient,
   createPerPostPayment,
-  getSettings
+  getSettings,
+  getMonthYearFromDate
 } from "@/lib/database"
 import type { Client } from "@/lib/supabase"
 
@@ -196,6 +197,29 @@ export function UpcomingPaymentsNew() {
     // Reload settings to ensure business information is up to date
     loadSettings()
   }
+
+  // Helper function to format platform names properly
+  const formatPlatformName = (platform: string): string => {
+    const platformMap: Record<string, string> = {
+      'linkedin': 'LinkedIn',
+      'twitter': 'Twitter', 
+      'instagram': 'Instagram',
+      'facebook': 'Facebook',
+      'youtube': 'YouTube',
+      'tiktok': 'TikTok',
+      'snapchat': 'Snapchat',
+      'pinterest': 'Pinterest',
+      'reddit': 'Reddit',
+      'discord': 'Discord',
+      'twitch': 'Twitch',
+      'telegram': 'Telegram',
+      'whatsapp': 'WhatsApp'
+    }
+    
+    // Return formatted name or capitalize first letter as fallback
+    return platformMap[platform.toLowerCase()] || 
+           platform.charAt(0).toUpperCase() + platform.slice(1).toLowerCase()
+  }
   
   // Effect to load invoice services when the invoice form is opened
   useEffect(() => {
@@ -348,23 +372,46 @@ export function UpcomingPaymentsNew() {
       
       // Special handling for per-post clients
       if (clientDetails.payment_type === 'per-post' && clientDetails.per_post_rates) {
-        // Get post counts for the client
-        const postCounts = await getPostCountsForClient(clientDetails.id)
+        // Get the month-year for the next payment to fetch correct post counts
+        const nextPaymentMonthYear = clientDetails.next_payment ? 
+          getMonthYearFromDate(clientDetails.next_payment) : undefined;
+          
+        // Get post counts for the client for the specific month
+        const postCounts = await getPostCountsForClient(clientDetails.id, nextPaymentMonthYear)
+        console.log("Post counts in parseServicesForInvoice:", postCounts, "for month:", nextPaymentMonthYear); // Debug log
         
         // Create line items for each platform with post counts
         const lineItems = postCounts
           .filter(pc => pc.count > 0) // Only include platforms with posts
           .map(pc => {
             const rate = clientDetails.per_post_rates?.[pc.platform] || 0
+            const platformName = formatPlatformName(pc.platform)
             return {
-              name: `${pc.platform} (${pc.count} posts)`,
+              name: `${platformName} Posts (${pc.count} posts)`,
               amount: pc.count * rate
             }
           })
         
         // If we found post counts, return them
         if (lineItems.length > 0) {
+          console.log("Generated line items for invoice:", lineItems); // Debug log
           return lineItems
+        }
+        
+        // Fallback: Show all available platforms even with 0 posts
+        const allPlatforms = Object.keys(clientDetails.per_post_rates);
+        const fallbackItems = allPlatforms.map(platform => {
+          const rate = clientDetails.per_post_rates?.[platform] || 0;
+          const platformName = formatPlatformName(platform);
+          return {
+            name: `${platformName} Posts (0 posts)`,
+            amount: 0
+          };
+        });
+        
+        if (fallbackItems.length > 0) {
+          console.log("Using fallback items for invoice:", fallbackItems); // Debug log
+          return fallbackItems;
         }
       } 
       // For regular clients, use their service list
@@ -411,15 +458,25 @@ export function UpcomingPaymentsNew() {
       let name = ''
       let amount = 0
       
-      // Pattern 1: "Service Name (X posts) - ₹Amount" - preserve the full name including posts
-      if (trimmed.includes(' - ₹')) {
+      // Pattern 1: "Platform Posts (X posts) - ₹Amount" - NEW enhanced format
+      if (trimmed.includes(' Posts (') && trimmed.includes(' posts) - ₹')) {
+        const match = trimmed.match(/^(.+?)\s+Posts\s+\((\d+)\s+posts\)\s+-\s+₹(\d+)$/)
+        if (match) {
+          const platform = match[1].trim()
+          const postCount = match[2]
+          name = `${platform} Posts (${postCount} posts)`
+          amount = parseInt(match[3])
+        }
+      }
+      // Pattern 2: "Service Name (X posts) - ₹Amount" - preserve the full name including posts
+      else if (trimmed.includes(' - ₹')) {
         const parts = trimmed.split(' - ₹')
         if (parts.length === 2) {
           name = parts[0].trim()
           amount = parseInt(parts[1])
         }
       }
-      // Pattern 2: "Service Name (₹Amount)"
+      // Pattern 3: "Service Name (₹Amount)"
       else if (trimmed.includes('(₹')) {
         const match = trimmed.match(/^(.+?)\s*\(₹(\d+)\)$/)
         if (match) {
@@ -427,7 +484,7 @@ export function UpcomingPaymentsNew() {
           amount = parseInt(match[2])
         }
       }
-      // Pattern 3: Just find the last ₹ and extract amount
+      // Pattern 4: Just find the last ₹ and extract amount
       else {
         const lastRupeeIndex = trimmed.lastIndexOf('₹')
         if (lastRupeeIndex !== -1) {
@@ -654,25 +711,46 @@ Note: Please manually attach the downloaded PDF file to this email.`
       let servicesText = 'Social Media Services';
       
       if (clientDetails.payment_type === 'per-post' && clientDetails.per_post_rates) {
-        // Fetch post counts for this client
-        const postCounts = await getPostCountsForClient(clientDetails.id);
+        // Get the month-year for the next payment to fetch correct post counts
+        const nextPaymentMonthYear = clientDetails.next_payment ? 
+          getMonthYearFromDate(clientDetails.next_payment) : undefined;
         
-        // Format services with post counts and prices
+        // Fetch post counts for this client for the specific month
+        const postCounts = await getPostCountsForClient(clientDetails.id, nextPaymentMonthYear);
+        console.log("Post counts for auto-fill:", postCounts, "for month:", nextPaymentMonthYear); // Debug log
+        
+        // Format services with post counts and prices - enhanced formatting
         const serviceItems = postCounts
-          .filter(pc => pc.count > 0)
+          .filter(pc => pc.count > 0) // Only include platforms with posts
           .map(pc => {
             const rate = clientDetails.per_post_rates?.[pc.platform] || 0;
-            return `${pc.platform} (${pc.count} posts) - ₹${pc.count * rate}`;
+            const totalPrice = pc.count * rate;
+            
+            // Proper platform name formatting
+            const platformName = formatPlatformName(pc.platform);
+            
+            return `${platformName} Posts (${pc.count} posts) - ₹${totalPrice}`;
           });
           
         // If we have services with post counts, use them
         if (serviceItems.length > 0) {
           servicesText = serviceItems.join(', ');
+          console.log("Auto-filled services text:", servicesText); // Debug log
+        } else {
+          // Fallback: Show available platforms even with 0 posts for transparency
+          const allPlatforms = Object.keys(clientDetails.per_post_rates);
+          const fallbackItems = allPlatforms.map(platform => {
+            const rate = clientDetails.per_post_rates?.[platform] || 0;
+            const platformName = formatPlatformName(platform);
+            return `${platformName} Posts (0 posts) - ₹0`;
+          });
+          servicesText = fallbackItems.join(', ');
+          console.log("Fallback services text (no posts):", servicesText); // Debug log
         }
       } else if (clientDetails.services && Object.keys(clientDetails.services).length > 0) {
         // Format services with prices for regular clients
         servicesText = Object.entries(clientDetails.services)
-          .map(([service, price]) => `${service} (₹${price})`)
+          .map(([service, price]) => `${service} - ₹${price}`)
           .join(', ');
       }
       
